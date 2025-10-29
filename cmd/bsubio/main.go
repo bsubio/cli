@@ -48,8 +48,10 @@ func run() error {
 		return runVersion(args)
 	case "types":
 		return runTypes(args)
+	case "quickstart":
+		return runQuickstart(args)
 	case "help", "-h", "--help":
-		return runHelp(args)
+		return runHelpCommand(args)
 	default:
 		return fmt.Errorf("unknown command: %s\nRun 'bsubio help' for usage", command)
 	}
@@ -76,7 +78,8 @@ COMMANDS:
     rm [-a|--all] <jobid>       Delete a job (or all jobs with -a)
     version                     Show API server version
     types                       List available job types
-    help                        Show this help message
+    quickstart                  Show quickstart guide
+    help [command]              Show help message or help for a specific command
 
 EXAMPLES:
     bsubio config
@@ -93,6 +96,8 @@ EXAMPLES:
     bsubio jobs --limit 10
     bsubio types
     bsubio version
+    bsubio quickstart
+    bsubio help submit
 `)
 	return nil
 }
