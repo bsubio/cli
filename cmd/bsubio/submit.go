@@ -1,46 +1,46 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
 
 func runSubmit(args []string) error {
-	var (
-		wait       bool
-		outputFile string
-		inputFile  string
-		jobType    string
-	)
+	fs := flag.NewFlagSet("submit", flag.ContinueOnError)
+
+	// Define flags
+	wait := fs.Bool("w", false, "Wait for job to complete")
+	outputFile := fs.String("o", "", "Output file path (requires -w)")
+
+	// Custom usage function
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <input_file> <type>\n\n")
+		fmt.Fprintf(fs.Output(), "Submit a job for processing\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
+		fs.PrintDefaults()
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  input_file    Path to the input file\n")
+		fmt.Fprintf(fs.Output(), "  type          Job type\n")
+	}
 
 	// Parse flags
-	i := 0
-	for i < len(args) {
-		arg := args[i]
-		if arg == "-w" {
-			wait = true
-			i++
-		} else if arg == "-o" {
-			if i+1 >= len(args) {
-				return fmt.Errorf("-o flag requires a file path")
-			}
-			outputFile = args[i+1]
-			i += 2
-		} else {
-			break
-		}
+	if err := fs.Parse(args); err != nil {
+		return err
 	}
 
-	// Parse required arguments
-	if i+2 > len(args) {
-		return fmt.Errorf("usage: bsubio submit [-o <file>] [-w] <input_file> <type>")
+	// Get remaining arguments
+	remainingArgs := fs.Args()
+	if len(remainingArgs) != 2 {
+		fs.Usage()
+		return fmt.Errorf("expected 2 arguments, got %d", len(remainingArgs))
 	}
 
-	inputFile = args[i]
-	jobType = args[i+1]
+	inputFile := remainingArgs[0]
+	jobType := remainingArgs[1]
 
 	// Validate that output file is only used with wait
-	if outputFile != "" && !wait {
+	if *outputFile != "" && !*wait {
 		return fmt.Errorf("-o flag requires -w flag")
 	}
 
@@ -70,7 +70,7 @@ func runSubmit(args []string) error {
 	fmt.Printf("Job submitted: %s\n", *job.Id)
 
 	// If wait flag is set, wait for completion and get output
-	if wait {
+	if *wait {
 		fmt.Printf("Waiting for job to complete...\n")
 		finishedJob, err := client.WaitForJob(ctx, *job.Id)
 		if err != nil {
@@ -94,8 +94,8 @@ func runSubmit(args []string) error {
 		defer outputResp.Body.Close()
 
 		// Write output to file or stdout
-		if outputFile != "" {
-			file, err := os.Create(outputFile)
+		if *outputFile != "" {
+			file, err := os.Create(*outputFile)
 			if err != nil {
 				return fmt.Errorf("failed to create output file: %w", err)
 			}
@@ -105,7 +105,7 @@ func runSubmit(args []string) error {
 				return fmt.Errorf("failed to write output file: %w", err)
 			}
 
-			fmt.Printf("Output saved to %s\n", outputFile)
+			fmt.Printf("Output saved to %s\n", *outputFile)
 		} else {
 			if _, err := os.Stdout.ReadFrom(outputResp.Body); err != nil {
 				return fmt.Errorf("failed to write output: %w", err)

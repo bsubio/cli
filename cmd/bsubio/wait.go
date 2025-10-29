@@ -1,48 +1,43 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/bsubio/bsubio-go"
 )
 
 func runWait(args []string) error {
-	var (
-		verbose  bool
-		interval int = 5 // default 5 seconds
-		jobID    string
-	)
+	fs := flag.NewFlagSet("wait", flag.ContinueOnError)
+
+	// Define flags
+	verbose := fs.Bool("v", false, "Verbose output")
+	interval := fs.Int("t", 5, "Polling interval in seconds")
+
+	// Custom usage function
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: bsubio wait [options] <jobid>\n\n")
+		fmt.Fprintf(fs.Output(), "Wait for a job to complete\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
+		fs.PrintDefaults()
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID to wait for\n")
+	}
 
 	// Parse flags
-	i := 0
-	for i < len(args) {
-		arg := args[i]
-		if arg == "-v" {
-			verbose = true
-			i++
-		} else if arg == "-t" {
-			if i+1 >= len(args) {
-				return fmt.Errorf("-t flag requires a timeout value in seconds")
-			}
-			var err error
-			interval, err = strconv.Atoi(args[i+1])
-			if err != nil {
-				return fmt.Errorf("invalid timeout value: %s", args[i+1])
-			}
-			i += 2
-		} else {
-			break
-		}
+	if err := fs.Parse(args); err != nil {
+		return err
 	}
 
-	// Parse required arguments
-	if i >= len(args) {
-		return fmt.Errorf("usage: bsubio wait [-v] [-t <seconds>] <jobid>")
+	// Get remaining arguments
+	remainingArgs := fs.Args()
+	if len(remainingArgs) != 1 {
+		fs.Usage()
+		return fmt.Errorf("expected 1 argument, got %d", len(remainingArgs))
 	}
 
-	jobID = args[i]
+	jobID := remainingArgs[0]
 
 	// Create client
 	client, err := createClient()
@@ -53,8 +48,8 @@ func runWait(args []string) error {
 	ctx := getContext()
 
 	// Poll for job completion
-	if verbose {
-		fmt.Printf("Waiting for job %s to complete (polling every %d seconds)...\n", jobID, interval)
+	if *verbose {
+		fmt.Printf("Waiting for job %s to complete (polling every %d seconds)...\n", jobID, *interval)
 	}
 
 	for {
@@ -73,7 +68,7 @@ func runWait(args []string) error {
 
 		job := resp.JSON200.Data
 
-		if verbose && job.Status != nil {
+		if *verbose && job.Status != nil {
 			fmt.Printf("Status: %s\n", *job.Status)
 		}
 
@@ -92,6 +87,6 @@ func runWait(args []string) error {
 		}
 
 		// Wait before polling again
-		time.Sleep(time.Duration(interval) * time.Second)
+		time.Sleep(time.Duration(*interval) * time.Second)
 	}
 }

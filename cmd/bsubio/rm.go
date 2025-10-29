@@ -1,35 +1,44 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/bsubio/bsubio-go"
 )
 
 func runRm(args []string) error {
-	var (
-		deleteAll bool
-		jobID     string
-	)
+	fs := flag.NewFlagSet("rm", flag.ContinueOnError)
 
-	// Parse flags
-	i := 0
-	for i < len(args) {
-		arg := args[i]
-		if arg == "-a" || arg == "--all" {
-			deleteAll = true
-			i++
-		} else {
-			break
-		}
+	// Define flags
+	deleteAll := fs.Bool("a", false, "Delete all jobs")
+
+	// Custom usage function
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: bsubio rm [options] [jobid]\n\n")
+		fmt.Fprintf(fs.Output(), "Delete a job or all jobs\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
+		fs.PrintDefaults()
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID to delete (not required with -a)\n")
 	}
 
+	// Parse flags
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	// Get remaining arguments
+	remainingArgs := fs.Args()
+	var jobID string
+
 	// If not deleting all, require job ID
-	if !deleteAll {
-		if i >= len(args) {
-			return fmt.Errorf("usage: bsubio rm [-a|--all] <jobid>")
+	if !*deleteAll {
+		if len(remainingArgs) != 1 {
+			fs.Usage()
+			return fmt.Errorf("expected 1 argument when not using -a flag")
 		}
-		jobID = args[i]
+		jobID = remainingArgs[0]
 	}
 
 	// Create client
@@ -40,7 +49,7 @@ func runRm(args []string) error {
 
 	ctx := getContext()
 
-	if deleteAll {
+	if *deleteAll {
 		// List all jobs and delete them
 		resp, err := client.ListJobsWithResponse(ctx, &bsubio.ListJobsParams{})
 		if err != nil {

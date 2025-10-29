@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -8,11 +9,29 @@ import (
 )
 
 func runCat(args []string) error {
-	if len(args) < 1 {
-		return fmt.Errorf("usage: bsubio cat <jobid>")
+	fs := flag.NewFlagSet("cat", flag.ContinueOnError)
+
+	// Custom usage function
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: bsubio cat <jobid>\n\n")
+		fmt.Fprintf(fs.Output(), "Print job output (stdout)\n\n")
+		fmt.Fprintf(fs.Output(), "Arguments:\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID\n")
 	}
 
-	jobID := args[0]
+	// Parse flags (none defined, but this handles help/errors)
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	// Get remaining arguments
+	remainingArgs := fs.Args()
+	if len(remainingArgs) != 1 {
+		fs.Usage()
+		return fmt.Errorf("expected 1 argument, got %d", len(remainingArgs))
+	}
+
+	jobID := remainingArgs[0]
 
 	// Create client
 	client, err := createClient()

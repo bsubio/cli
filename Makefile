@@ -15,18 +15,18 @@ build: $(CLI_BINARY)
 
 $(CLI_BINARY):
 	@echo "Building bsubio CLI..."
-	@mkdir -p $(BIN_DIR)
+	mkdir -p $(BIN_DIR)
 	$(GO) build $(GOFLAGS) -o $(CLI_BINARY) ./cmd/bsubio
 
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
-	@rm -rf $(BIN_DIR)
+	rm -rf $(BIN_DIR)
 
 # Install the CLI to system PATH
 install: build
 	@echo "Installing bsubio to /usr/local/bin..."
-	@install -m 0755 $(CLI_BINARY) /usr/local/bin/bsubio
+	install -m 0755 $(CLI_BINARY) /usr/local/bin/bsubio
 	@echo "Installation complete!"
 
 # Run tests
@@ -35,8 +35,8 @@ test:
 
 # Download dependencies
 deps:
-	$(GO) mod download
-	$(GO) mod tidy
+	(GO) mod download
+	(GO) mod tidy
 
 # Show help
 help:

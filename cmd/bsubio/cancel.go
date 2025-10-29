@@ -1,35 +1,44 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/bsubio/bsubio-go"
 )
 
 func runCancel(args []string) error {
-	var (
-		cancelAll bool
-		jobID     string
-	)
+	fs := flag.NewFlagSet("cancel", flag.ContinueOnError)
 
-	// Parse flags
-	i := 0
-	for i < len(args) {
-		arg := args[i]
-		if arg == "-a" || arg == "--all" {
-			cancelAll = true
-			i++
-		} else {
-			break
-		}
+	// Define flags
+	cancelAll := fs.Bool("a", false, "Cancel all pending/claimed jobs")
+
+	// Custom usage function
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: bsubio cancel [options] [jobid]\n\n")
+		fmt.Fprintf(fs.Output(), "Cancel a job or all jobs\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
+		fs.PrintDefaults()
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID to cancel (not required with -a)\n")
 	}
 
+	// Parse flags
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	// Get remaining arguments
+	remainingArgs := fs.Args()
+	var jobID string
+
 	// If not canceling all, require job ID
-	if !cancelAll {
-		if i >= len(args) {
-			return fmt.Errorf("usage: bsubio cancel [-a|--all] <jobid>")
+	if !*cancelAll {
+		if len(remainingArgs) != 1 {
+			fs.Usage()
+			return fmt.Errorf("expected 1 argument when not using -a flag")
 		}
-		jobID = args[i]
+		jobID = remainingArgs[0]
 	}
 
 	// Create client
@@ -40,7 +49,7 @@ func runCancel(args []string) error {
 
 	ctx := getContext()
 
-	if cancelAll {
+	if *cancelAll {
 		// List all jobs and cancel pending/claimed ones
 		resp, err := client.ListJobsWithResponse(ctx, &bsubio.ListJobsParams{})
 		if err != nil {
