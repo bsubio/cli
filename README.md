@@ -11,11 +11,7 @@ Command-line interface for [bsub.io](https://bsub.io) batch processing service.
 git clone https://github.com/bsubio/cli.git
 cd cli
 
-# Build the binary
-make build
-
-# Install to system PATH
-make install
+make
 ```
 
 The binary will be installed to `/usr/local/bin/bsubio`.

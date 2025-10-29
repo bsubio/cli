@@ -4,7 +4,8 @@ GO := go
 GOFLAGS := -v
 
 build:
-	$(GO) build $(GOFLAGS) -o bsubio ./cmd/bsubio
+	mkdir -p bin
+	$(GO) build $(GOFLAGS) -o bin/bsubio ./cmd/bsubio
 
 clean:
 	rm -f bsubio
