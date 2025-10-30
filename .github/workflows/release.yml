@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  packages: read
 
 jobs:
   build:
@@ -37,8 +38,10 @@ jobs:
           go-version: '1.25'
 
       - name: Configure Git for private modules
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://${GH_PAT}@github.com/".insteadOf "https://github.com/"
 
       - name: Get version from tag
         id: get_version
