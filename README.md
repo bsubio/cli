@@ -4,6 +4,55 @@ Command-line interface for [bsub.io](https://bsub.io) batch processing service.
 
 ## Installation
 
+### Quick Install (Recommended)
+
+For Linux and macOS:
+
+```bash
+curl -fsSL https://install.bsub.io/ | sh
+```
+
+The script will:
+- Automatically detect your OS and architecture
+- Download the latest release
+- Verify checksums
+- Install to `~/.local/bin/bsubio`
+- Provide instructions to add to PATH if needed
+
+### Manual Installation
+
+Download the appropriate binary for your platform from the [latest release](https://github.com/bsubio/cli/releases/latest):
+
+- **Linux (x86_64)**: `bsubio-linux-amd64`
+- **Linux (ARM64)**: `bsubio-linux-arm64`
+- **macOS (Intel)**: `bsubio-darwin-amd64`
+- **macOS (Apple Silicon)**: `bsubio-darwin-arm64`
+- **Windows (x86_64)**: `bsubio-windows-amd64.exe`
+
+Then install manually:
+
+```bash
+# Download (replace with your platform)
+curl -LO https://github.com/bsubio/cli/releases/latest/download/bsubio-linux-amd64
+
+# Make executable
+chmod +x bsubio-linux-amd64
+
+# Move to your PATH
+sudo mv bsubio-linux-amd64 /usr/local/bin/bsubio
+```
+
+### Build from Source
+
+Requires Go 1.25 or later:
+
+```bash
+git clone https://github.com/bsubio/cli.git
+cd cli
+make build-static
+sudo mv bin/bsubio /usr/local/bin/
+```
+
 ## Quick Start
 
 First configure the CLI.
