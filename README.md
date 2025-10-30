@@ -4,12 +4,11 @@ Command-line interface for [bsub.io](https://bsub.io) batch processing service.
 
 ## Installation
 
-
 ## Quick Start
 
 First configure the CLI.
 
-    bsubio config
+    $ bsubio config
 
 The CLI will ask you for the API key.
 You must have account at https://app.bsub.io first, to get it.
@@ -20,51 +19,28 @@ any point in time.
 
 Then you can do dry run:
 
-    echo 123 > input.txt
-    bsubio submit input.txt passthrough
+    $ echo 123 > input.txt
+    $ bsubio submit input.txt passthrough
+
+Expected output will be similar to:
+
+    019a3256-26b4-7f1f-b1aa-0b45ab7b371d
+
+Which is a JobID.
+
+At any time you can see all jobs:
+
+    $ bsubio jobs
+
+    JOB ID                                   TYPE         STATUS          CREATED AT
+    --------------------------------------------------------------------------------
+    019a3256-26b4-7f1f-b1aa-0b45ab7b371d     passthrough  pending         2025-10-29 23:38
 
 This will submit the file `input.txt` that we just created with its  sample "123" string to `bsub.io` infrastructure.
 The `passthrough` is like `cat` in command line: it should read input and print output without modification.
 
-    bsubio status <jobid>
-    bsubio cat <jobid>
-
-## Common Workflows
-
-### Process a file and wait for results
-
-```bash
-bsubio submit -w -o result.txt input.txt passthrough
-```
-
-### Submit and monitor progress
-
-```bash
-# Submit job
-JOBID=$(bsubio submit input.json json_format | grep -o 'Job submitted: .*' | cut -d' ' -f3)
-
-# Wait for completion
-bsubio wait -v $JOBID
-
-# Get output
-bsubio cat $JOBID
-```
-
-### Check recent jobs and their status
-
-```bash
-bsubio jobs --limit 10
-```
-
-### Debug a failed job
-
-```bash
-# Check status
-bsubio status job_abc123
-
-# View logs
-bsubio logs job_abc123
-```
+    bsubio status 019a3256-26b4-7f1f-b1aa-0b45ab7b371d
+    bsubio cat 019a3256-26b4-7f1f-b1aa-0b45ab7b371d
 
 ## Exit Codes
 
@@ -86,6 +62,7 @@ Development flow:
     make
 
 For submitting new featurs:
+
 1. Open PR to discuss the change
 1. Fork the repository
 1. Create a feature branch
