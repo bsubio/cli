@@ -15,7 +15,7 @@ build-static:
 
 release:
 	@echo "Building static binaries for release..."
-	@mkdir -p bin/release
+	mkdir -p bin/release
 	@for os in linux darwin; do \
 		for arch in amd64 arm64; do \
 			echo "Building $$os/$$arch..."; \
@@ -23,7 +23,7 @@ release:
 		done; \
 	done
 	@echo "Building windows/amd64..."
-	@GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build -ldflags="$(LDFLAGS)" -o bin/release/bsubio-windows-amd64.exe ./cmd/bsubio
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build -ldflags="$(LDFLAGS)" -o bin/release/bsubio-windows-amd64.exe ./cmd/bsubio
 	@echo "Release binaries built in bin/release/"
 
 clean:
