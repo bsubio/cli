@@ -96,12 +96,39 @@ jobs:
           find artifacts -type f \( -name "bsubio-*" -o -name "*.sha256" \) -exec cp {} release/ \;
           ls -lah release/
 
+      - name: Set up Python for changelog extraction
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyYAML
+        if: startsWith(github.ref, 'refs/tags/')
+        run: pip install PyYAML
+
+      - name: Extract changelog from CHANGES.yaml
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION="${{ github.ref_name }}"
+          python .github/scripts/extract-changelog.py "$VERSION" > release-notes.md
+          echo "--- Generated Release Notes ---"
+          cat release-notes.md
+
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            release/* \
-            --title "${{ github.ref_name }}" \
-            --generate-notes
+          # Check if we have custom release notes from CHANGES.yaml
+          if [ -f release-notes.md ] && [ -s release-notes.md ]; then
+            gh release create "${{ github.ref_name }}" \
+              release/* \
+              --title "${{ github.ref_name }}" \
+              --notes-file release-notes.md
+          else
+            # Fallback to auto-generated notes if CHANGES.yaml extraction failed
+            gh release create "${{ github.ref_name }}" \
+              release/* \
+              --title "${{ github.ref_name }}" \
+              --generate-notes
+          fi
