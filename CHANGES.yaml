@@ -1,0 +1,104 @@
+# CHANGES.yaml - Semantic Version Changelog
+# This file documents changes for each release of bsubio CLI
+#
+# Format Guide:
+# - ancestor: Set to previous version when creating new releases
+# - releases: Dictionary of version numbers with their changes
+# - Categories:
+#   - major_changes: New features or significant enhancements
+#   - minor_changes: Small improvements, enhancements, or additions
+#   - bugfixes: Bug fixes
+#   - security_fixes: Security-related fixes (include CVE if applicable)
+#   - breaking_changes: Changes that break backward compatibility
+#   - known_issues: Known limitations or issues in this release
+#
+# Before creating a new release:
+# 1. Add a new entry under 'releases' with the version number
+# 2. Set release_date to today's date (YYYY-MM-DD)
+# 3. Write a brief release_summary
+# 4. Fill in relevant change categories (use empty list [] if none)
+# 5. Update 'ancestor' to the previous version
+# 6. Commit changes before tagging the release
+
+ancestor: null
+
+releases:
+  # Template for new releases (copy and fill in)
+  # x.y.z:
+  #   release_date: YYYY-MM-DD
+  #   release_summary: |
+  #     Brief description of this release.
+  #   major_changes:
+  #     - Description of major feature or change
+  #   minor_changes:
+  #     - Description of minor enhancement
+  #   bugfixes:
+  #     - Description of bug fix
+  #   security_fixes:
+  #     - Description of security fix (include CVE if applicable)
+  #   breaking_changes:
+  #     - Description of breaking change
+  #   known_issues:
+  #     - Description of known issue or limitation
+  0.0.2-alpha:
+    release_date: 2025-11-3
+    release_summary: |
+      Added CHANGES.yaml
+
+    major_changes:
+      - 'Added CHANGES.yaml for semantic version changelog'
+    minor_changes:
+      - 'Updated release process documentation'
+    bugfixes: []
+    security_fixes: []
+    breaking_changes: []
+    known_issues: []
+
+  0.0.1-alpha:
+    release_date: 2025-10-31
+    release_summary: |
+      Initial alpha release of bsubio CLI with core functionality for batch processing.
+
+    major_changes:
+      - 'Initial CLI implementation with command structure'
+      - 'Job submission: submit command to send files for processing'
+      - 'Job monitoring: wait, status, jobs commands'
+      - 'Output retrieval: cat command for stdout, logs command for stderr'
+      - 'Job management: cancel and rm commands'
+      - 'Configuration: config command for API key setup'
+      - 'Discovery: types command to list available job types'
+      - 'Documentation: quickstart command for new users'
+
+    minor_changes:
+      - 'Comprehensive help system with command-specific documentation'
+      - 'Static binary builds for multiple platforms (Linux, macOS, Windows)'
+      - 'Automated installation script'
+      - 'SHA256 checksums for binary verification'
+
+    bugfixes:
+      - 'Fix private repository access in CI workflow'
+      - 'Fix release workflow for public dependencies'
+
+    security_fixes: []
+
+    breaking_changes: []
+
+    known_issues:
+      - 'Configuration stored in plaintext at ~/.config/bsubio/config.json'
+
+  0.0.0-alpha:
+    release_date: 2025-10-30
+    release_summary: |
+      Initial proof-of-concept alpha release.
+
+    major_changes:
+      - 'Initial project structure'
+      - 'Basic CLI framework'
+
+    minor_changes:
+      - 'README with basic documentation'
+
+    bugfixes: []
+    security_fixes: []
+    breaking_changes: []
+    known_issues: []
