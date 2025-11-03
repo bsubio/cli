@@ -120,43 +120,28 @@ For submitting new featurs:
 
 ### Release Process
 
-This project follows [semantic versioning](https://semver.org/) (MAJOR.MINOR.PATCH):
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backward compatible)
-- **PATCH**: Bug fixes (backward compatible)
+This project uses **automated releases** based on [conventional commits](https://www.conventionalcommits.org/).
 
-Releases are automated using [GoReleaser](https://goreleaser.com/). To create a new release:
-
-1. **Tag the release**:
-   ```bash
-   git tag -a vx.y.z -m "Release vx.y.z"
-   git push origin vx.y.z
-   ```
-
-2. **GoReleaser automatically**:
+**How it works:**
+1. Use conventional commit format in your commits:
+   - `feat:` → triggers **minor** version bump (e.g., v0.1.0 → v0.2.0)
+   - `fix:` → triggers **patch** version bump (e.g., v0.1.0 → v0.1.1)
+2. When merged to `main`, GitHub Actions automatically:
+   - Calculates the next version
+   - Creates a git tag
    - Builds binaries for all platforms (Linux, macOS, Windows)
-   - Generates checksums
-   - Creates changelog from git commits since last release
-   - Creates a GitHub release with all artifacts
+   - Generates changelog from commits
+   - Publishes a GitHub release
 
-**Pro tip**: Use [conventional commits](https://www.conventionalcommits.org/) for better automatic changelogs:
-- `feat: add new feature` → appears under "Features"
-- `fix: resolve bug` → appears under "Bug Fixes"
-
-#### Local Testing (Optional)
-
-Test the release configuration locally before pushing:
-
+**Commit examples:**
 ```bash
-# Install GoReleaser
-go install github.com/goreleaser/goreleaser@latest
-
-# Test build without publishing
-goreleaser release --snapshot --clean
-
-# Check the dist/ directory for generated artifacts
-ls -lh dist/
+feat: add authentication support
+feat(api): implement rate limiting
+fix: resolve memory leak in worker pool
+fix(cli): handle empty config files correctly
 ```
+
+**Note:** No manual tagging required! Releases happen automatically on merge to `main`.
 
 ## Support
 
