@@ -136,9 +136,7 @@ This project uses **automated releases** based on [conventional commits](https:/
 **Commit examples:**
 ```bash
 feat: add authentication support
-feat(api): implement rate limiting
 fix: resolve memory leak in worker pool
-fix(cli): handle empty config files correctly
 ```
 
 **Note:** No manual tagging required! Releases happen automatically on merge to `main`.
