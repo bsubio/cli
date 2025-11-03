@@ -118,6 +118,46 @@ For submitting new featurs:
 1. Make your changes
 1. Submit a pull request
 
+### Release Process
+
+This project follows [semantic versioning](https://semver.org/) (MAJOR.MINOR.PATCH):
+- **MAJOR**: Breaking changes
+- **MINOR**: New features (backward compatible)
+- **PATCH**: Bug fixes (backward compatible)
+
+Releases are automated using [GoReleaser](https://goreleaser.com/). To create a new release:
+
+1. **Tag the release**:
+   ```bash
+   git tag -a vx.y.z -m "Release vx.y.z"
+   git push origin vx.y.z
+   ```
+
+2. **GoReleaser automatically**:
+   - Builds binaries for all platforms (Linux, macOS, Windows)
+   - Generates checksums
+   - Creates changelog from git commits since last release
+   - Creates a GitHub release with all artifacts
+
+**Pro tip**: Use [conventional commits](https://www.conventionalcommits.org/) for better automatic changelogs:
+- `feat: add new feature` → appears under "Features"
+- `fix: resolve bug` → appears under "Bug Fixes"
+
+#### Local Testing (Optional)
+
+Test the release configuration locally before pushing:
+
+```bash
+# Install GoReleaser
+go install github.com/goreleaser/goreleaser@latest
+
+# Test build without publishing
+goreleaser release --snapshot --clean
+
+# Check the dist/ directory for generated artifacts
+ls -lh dist/
+```
+
 ## Support
 
 For issues and questions:
