@@ -38,7 +38,7 @@ archives:
       - goos: darwin
         format: binary
     name_template: >-
-      {{ .ProjectName }}-
+      bsubio-
       {{- .Os }}-
       {{- .Arch }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
