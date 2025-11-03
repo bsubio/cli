@@ -100,10 +100,6 @@ release:
     - [Documentation](https://docs.bsub.io)
   name_template: "{{.Tag}}"
 
-  # Include README in release assets
-  extra_files:
-    - glob: ./README.md
-
 # Announce releases (optional - uncomment if needed)
 # announce:
 #   slack:
