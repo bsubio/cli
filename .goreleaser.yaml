@@ -30,7 +30,13 @@ builds:
 
 archives:
   - id: bsubio-archive
-    format: binary
+    format_overrides:
+      - goos: windows
+        format: binary
+      - goos: linux
+        format: binary
+      - goos: darwin
+        format: binary
     name_template: >-
       {{ .ProjectName }}-
       {{- .Os }}-
@@ -95,9 +101,8 @@ release:
     - [Documentation](https://docs.bsub.io)
   name_template: "{{.Tag}}"
 
-  # Use custom release notes from CHANGES.yaml if available
+  # Include README in release assets
   extra_files:
-    - glob: ./CHANGES.yaml
     - glob: ./README.md
 
 # Announce releases (optional - uncomment if needed)
