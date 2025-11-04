@@ -58,7 +58,7 @@ func run() error {
 }
 
 func runHelp(args []string) error {
-	fmt.Println(`bsubio - Command line tool for bsub.io batch processing
+	fmt.Print(`bsubio - Command line tool for bsub.io batch processing
 
 USAGE:
     bsubio <command> [options] [arguments]
