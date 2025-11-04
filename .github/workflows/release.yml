@@ -1,10 +1,9 @@
-name: Auto Release
+name: Release
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    tags:
+      - 'v*'  # Only trigger on version tags like v1.0.0
 
 permissions:
   contents: write
@@ -17,72 +16,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Calculate version
-        id: version
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          # Get latest tag or default to v0.0.0
-          LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "Latest tag: $LATEST"
-
-          # Parse version
-          VERSION=${LATEST#v}
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-
-          # Check commits since last tag
-          if [ "$LATEST" = "v0.0.0" ]; then
-            COMMITS=$(git log --pretty=format:"%s")
-          else
-            COMMITS=$(git log ${LATEST}..HEAD --pretty=format:"%s")
-          fi
-
-          # Determine bump type
-          SHOULD_RELEASE="false"
-          if echo "$COMMITS" | grep -qE '^(feat|\\[feat\\])'; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-            echo "Found feat → minor bump"
-            SHOULD_RELEASE="true"
-          elif echo "$COMMITS" | grep -qE '^(fix|\\[fix\\])'; then
-            PATCH=$((PATCH + 1))
-            echo "Found fix → patch bump"
-            SHOULD_RELEASE="true"
-          else
-            echo "No feat/fix commits. Skipping release."
-          fi
-
-          # Set output
-          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
-          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
-          echo "Calculated version: $NEW_TAG"
-
-          # Check if tag already exists
-          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
-            echo "Tag $NEW_TAG already exists. Skipping."
-            echo "should_release=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Set up Go
-        if: steps.version.outputs.should_release == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
 
-      - name: Create tag and release
-        if: steps.version.outputs.should_release == 'true'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          NEW_TAG="${{ steps.version.outputs.new_tag }}"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
-
       - name: Run GoReleaser
-        if: steps.version.outputs.should_release == 'true'
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
