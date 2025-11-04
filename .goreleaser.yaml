@@ -1,0 +1,107 @@
+# GoReleaser configuration for bsubio CLI
+# Documentation: https://goreleaser.com
+
+version: 2
+
+before:
+  hooks:
+    # Ensure dependencies are up to date
+    - go mod tidy
+
+builds:
+  - id: bsubio
+    main: ./cmd/bsubio
+    binary: bsubio
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+    # Ensure static binaries
+    flags:
+      - -trimpath
+
+archives:
+  - id: bsubio-archive
+    format_overrides:
+      - goos: windows
+        format: binary
+      - goos: linux
+        format: binary
+      - goos: darwin
+        format: binary
+    name_template: >-
+      bsubio-
+      {{- .Os }}-
+      {{- .Arch }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+changelog:
+  disable: false
+  use: git
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Other Changes
+      order: 999
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: bsubio
+    name: cli
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## bsubio CLI {{ .Tag }}
+
+    Download the appropriate binary for your platform below.
+  footer: |
+    ---
+
+    ### Installation
+
+    #### Quick Install (Recommended)
+    ```bash
+    curl -fsSL https://install.bsub.io/ | sh
+    ```
+
+    #### Manual Installation
+    1. Download the binary for your platform
+    2. Verify the checksum: `sha256sum -c checksums.txt`
+    3. Make it executable: `chmod +x bsubio-*`
+    4. Move to PATH: `sudo mv bsubio-* /usr/local/bin/bsubio`
+
+    ### Documentation
+    - [GitHub Repository](https://github.com/bsubio/cli)
+    - [Documentation](https://docs.bsub.io)
+  name_template: "{{.Tag}}"
+
+# Announce releases (optional - uncomment if needed)
+# announce:
+#   slack:
+#     enabled: true
+#     message_template: 'bsubio CLI {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}'

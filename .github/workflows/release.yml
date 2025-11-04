@@ -1,107 +1,92 @@
-name: Release
+name: Auto Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build Release Binaries
+  release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
-          - goos: windows
-            goarch: amd64
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Calculate version
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          # Get latest tag or default to v0.0.0
+          LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST"
+
+          # Parse version
+          VERSION=${LATEST#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          # Check commits since last tag
+          if [ "$LATEST" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"%s")
+          else
+            COMMITS=$(git log ${LATEST}..HEAD --pretty=format:"%s")
+          fi
+
+          # Determine bump type
+          SHOULD_RELEASE="false"
+          if echo "$COMMITS" | grep -qE '^(feat|\\[feat\\])'; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            echo "Found feat → minor bump"
+            SHOULD_RELEASE="true"
+          elif echo "$COMMITS" | grep -qE '^(fix|\\[fix\\])'; then
+            PATCH=$((PATCH + 1))
+            echo "Found fix → patch bump"
+            SHOULD_RELEASE="true"
+          else
+            echo "No feat/fix commits. Skipping release."
+          fi
+
+          # Set output
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "should_release=$SHOULD_RELEASE" >> $GITHUB_OUTPUT
+          echo "Calculated version: $NEW_TAG"
+
+          # Check if tag already exists
+          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+            echo "Tag $NEW_TAG already exists. Skipping."
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up Go
+        if: steps.version.outputs.should_release == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
 
-      - name: Get version from tag
-        id: get_version
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          else
-            echo "VERSION=test-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Build binary
+      - name: Create tag and release
+        if: steps.version.outputs.should_release == 'true'
         env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          BINARY_NAME="bsubio-${{ matrix.goos }}-${{ matrix.goarch }}"
-          if [ "${{ matrix.goos }}" = "windows" ]; then
-            BINARY_NAME="${BINARY_NAME}.exe"
-          fi
+          NEW_TAG="${{ steps.version.outputs.new_tag }}"
 
-          go build \
-            -ldflags="-s -w -X main.version=${{ steps.get_version.outputs.VERSION }}" \
-            -o "${BINARY_NAME}" \
-            ./cmd/bsubio
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
 
-          # Create checksum
-          sha256sum "${BINARY_NAME}" > "${BINARY_NAME}.sha256"
-
-          echo "Built ${BINARY_NAME}"
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Run GoReleaser
+        if: steps.version.outputs.should_release == 'true'
+        uses: goreleaser/goreleaser-action@v6
         with:
-          name: bsubio-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: |
-            bsubio-*
-            *.sha256
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Prepare release files
-        run: |
-          mkdir -p release
-          find artifacts -type f \( -name "bsubio-*" -o -name "*.sha256" \) -exec cp {} release/ \;
-          ls -lah release/
-
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ github.ref_name }}" \
-            release/* \
-            --title "${{ github.ref_name }}" \
-            --generate-notes
+          GITHUB_TOKEN: ${{ github.token }}

@@ -118,6 +118,29 @@ For submitting new featurs:
 1. Make your changes
 1. Submit a pull request
 
+### Release Process
+
+This project uses **automated releases** based on [conventional commits](https://www.conventionalcommits.org/).
+
+**How it works:**
+1. Use conventional commit format in your commits:
+   - `feat:` → triggers **minor** version bump (e.g., v0.1.0 → v0.2.0)
+   - `fix:` → triggers **patch** version bump (e.g., v0.1.0 → v0.1.1)
+2. When merged to `main`, GitHub Actions automatically:
+   - Calculates the next version
+   - Creates a git tag
+   - Builds binaries for all platforms (Linux, macOS, Windows)
+   - Generates changelog from commits
+   - Publishes a GitHub release
+
+**Commit examples:**
+```bash
+feat: add authentication support
+fix: resolve memory leak in worker pool
+```
+
+**Note:** No manual tagging required! Releases happen automatically on merge to `main`.
+
 ## Support
 
 For issues and questions:
