@@ -30,13 +30,7 @@ builds:
 
 archives:
   - id: bsubio-archive
-    format_overrides:
-      - goos: windows
-        format: binary
-      - goos: linux
-        format: binary
-      - goos: darwin
-        format: binary
+    format: binary
     name_template: >-
       bsubio-
       {{- .Os }}-
