@@ -28,21 +28,6 @@ builds:
     flags:
       - -trimpath
 
-archives:
-  - id: bsubio-archive
-    format_overrides:
-      - goos: windows
-        format: binary
-      - goos: linux
-        format: binary
-      - goos: darwin
-        format: binary
-    name_template: >-
-      bsubio-
-      {{- .Os }}-
-      {{- .Arch }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-
 checksum:
   name_template: 'checksums.txt'
   algorithm: sha256
