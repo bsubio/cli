@@ -48,6 +48,8 @@ func run() error {
 		return runVersion(args)
 	case "types":
 		return runTypes(args)
+	case "bench":
+		return runBench(args)
 	case "quickstart":
 		return runQuickstart(args)
 	case "help", "-h", "--help":
@@ -58,7 +60,7 @@ func run() error {
 }
 
 func runHelp(args []string) error {
-	fmt.Println(`bsubio - Command line tool for bsub.io batch processing
+	fmt.Print(`bsubio - Command line tool for bsub.io batch processing
 
 USAGE:
     bsubio <command> [options] [arguments]
@@ -78,6 +80,7 @@ COMMANDS:
     rm [-a|--all] <jobid>       Delete a job (or all jobs with -a)
     version                     Show API server version
     types                       List available job types
+    bench [options]             Benchmark job processing with test files
     quickstart                  Show quickstart guide
     help [command]              Show help message or help for a specific command
 
@@ -95,6 +98,8 @@ EXAMPLES:
     bsubio rm -a
     bsubio jobs --limit 10
     bsubio types
+    bsubio bench
+    bsubio bench --type pdf_extract --dir tests/data
     bsubio version
     bsubio quickstart
     bsubio help submit
