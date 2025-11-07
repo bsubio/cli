@@ -39,7 +39,7 @@ func loadConfig() (*Config, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("config file not found. Run 'bsubio config' to set up")
+			return nil, fmt.Errorf("bsubio not setup. To setup, run:\n\nbsubio config")
 		}
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
