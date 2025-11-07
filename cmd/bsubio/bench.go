@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -15,6 +16,7 @@ func runBench(args []string) error {
 	jobType := fs.String("type", "pdf_extract", "Job type to use for benchmarking")
 	dataDir := fs.String("dir", "tests/data", "Directory containing test files")
 	pattern := fs.String("pattern", "*.pdf", "File pattern to match (e.g., *.pdf)")
+	jsonOutput := fs.Bool("json", false, "Output results in JSON format")
 
 	// Custom usage function
 	fs.Usage = func() {
@@ -55,17 +57,19 @@ func runBench(args []string) error {
 
 	ctx := getContext()
 
-	fmt.Printf("Benchmarking %d file(s) with job type: %s\n", len(testFiles), *jobType)
-	fmt.Println("================================================================================")
+	if !*jsonOutput {
+		fmt.Printf("Benchmarking %d file(s) with job type: %s\n", len(testFiles), *jobType)
+		fmt.Println("================================================================================")
+	}
 
 	type result struct {
-		file     string
-		size     int64
-		jobID    string
-		submitMs int64
-		totalMs  int64
-		status   string
-		err      error
+		File     string `json:"file"`
+		Size     int64  `json:"size"`
+		JobID    string `json:"job_id,omitempty"`
+		SubmitMs int64  `json:"submit_ms"`
+		TotalMs  int64  `json:"total_ms"`
+		Status   string `json:"status"`
+		Error    string `json:"error,omitempty"`
 	}
 
 	results := make([]result, 0, len(testFiles))
@@ -75,14 +79,16 @@ func runBench(args []string) error {
 		fileInfo, err := os.Stat(testFile)
 		if err != nil {
 			results = append(results, result{
-				file:   filepath.Base(testFile),
-				status: "error",
-				err:    err,
+				File:   filepath.Base(testFile),
+				Status: "error",
+				Error:  err.Error(),
 			})
 			continue
 		}
 
-		fmt.Printf("\nProcessing: %s (%d bytes)\n", filepath.Base(testFile), fileInfo.Size())
+		if !*jsonOutput {
+			fmt.Printf("\nProcessing: %s (%d bytes)\n", filepath.Base(testFile), fileInfo.Size())
+		}
 
 		// Time submission
 		submitStart := time.Now()
@@ -91,17 +97,21 @@ func runBench(args []string) error {
 
 		if err != nil {
 			results = append(results, result{
-				file:   filepath.Base(testFile),
-				size:   fileInfo.Size(),
-				status: "submit_failed",
-				err:    err,
+				File:   filepath.Base(testFile),
+				Size:   fileInfo.Size(),
+				Status: "submit_failed",
+				Error:  err.Error(),
 			})
-			fmt.Printf("  Submit failed: %v\n", err)
+			if !*jsonOutput {
+				fmt.Printf("  Submit failed: %v\n", err)
+			}
 			continue
 		}
 
-		fmt.Printf("  Job ID: %s\n", *job.Id)
-		fmt.Printf("  Submit time: %dms\n", submitDuration.Milliseconds())
+		if !*jsonOutput {
+			fmt.Printf("  Job ID: %s\n", *job.Id)
+			fmt.Printf("  Submit time: %dms\n", submitDuration.Milliseconds())
+		}
 
 		// Wait for completion
 		finishedJob, err := client.WaitForJob(ctx, *job.Id)
@@ -109,14 +119,16 @@ func runBench(args []string) error {
 
 		if err != nil {
 			results = append(results, result{
-				file:     filepath.Base(testFile),
-				size:     fileInfo.Size(),
-				jobID:    *job.Id,
-				submitMs: submitDuration.Milliseconds(),
-				status:   "wait_failed",
-				err:      err,
+				File:     filepath.Base(testFile),
+				Size:     fileInfo.Size(),
+				JobID:    *job.Id,
+				SubmitMs: submitDuration.Milliseconds(),
+				Status:   "wait_failed",
+				Error:    err.Error(),
 			})
-			fmt.Printf("  Wait failed: %v\n", err)
+			if !*jsonOutput {
+				fmt.Printf("  Wait failed: %v\n", err)
+			}
 			continue
 		}
 
@@ -125,64 +137,119 @@ func runBench(args []string) error {
 			jobStatus = string(*finishedJob.Status)
 		}
 
+		errorMsg := ""
+		if jobStatus == "failed" && finishedJob.ErrorMessage != nil {
+			errorMsg = *finishedJob.ErrorMessage
+		}
+
 		results = append(results, result{
-			file:     filepath.Base(testFile),
-			size:     fileInfo.Size(),
-			jobID:    *job.Id,
-			submitMs: submitDuration.Milliseconds(),
-			totalMs:  totalDuration.Milliseconds(),
-			status:   jobStatus,
+			File:     filepath.Base(testFile),
+			Size:     fileInfo.Size(),
+			JobID:    *job.Id,
+			SubmitMs: submitDuration.Milliseconds(),
+			TotalMs:  totalDuration.Milliseconds(),
+			Status:   jobStatus,
+			Error:    errorMsg,
 		})
 
-		fmt.Printf("  Status: %s\n", jobStatus)
-		fmt.Printf("  Total time: %dms\n", totalDuration.Milliseconds())
+		if !*jsonOutput {
+			fmt.Printf("  Status: %s\n", jobStatus)
+			fmt.Printf("  Total time: %dms\n", totalDuration.Milliseconds())
 
-		if jobStatus == "failed" && finishedJob.ErrorMessage != nil {
-			fmt.Printf("  Error: %s\n", *finishedJob.ErrorMessage)
-		}
-	}
-
-	// Print summary
-	fmt.Println("\n================================================================================")
-	fmt.Println("SUMMARY")
-	fmt.Println("================================================================================")
-	fmt.Printf("%-30s %10s %10s %10s %s\n", "File", "Size", "Submit", "Total", "Status")
-	fmt.Println("--------------------------------------------------------------------------------")
-
-	var totalSubmitMs int64
-	var totalProcessMs int64
-	successCount := 0
-
-	for _, r := range results {
-		if r.err != nil {
-			fmt.Printf("%-30s %10s %10s %10s %s: %v\n",
-				truncate(r.file, 30),
-				formatBytes(r.size),
-				"-",
-				"-",
-				r.status,
-				r.err)
-		} else {
-			fmt.Printf("%-30s %10s %10dms %10dms %s\n",
-				truncate(r.file, 30),
-				formatBytes(r.size),
-				r.submitMs,
-				r.totalMs,
-				r.status)
-
-			totalSubmitMs += r.submitMs
-			totalProcessMs += r.totalMs
-			if r.status == "finished" || r.status == "completed" {
-				successCount++
+			if errorMsg != "" {
+				fmt.Printf("  Error: %s\n", errorMsg)
 			}
 		}
 	}
 
-	fmt.Println("--------------------------------------------------------------------------------")
-	fmt.Printf("Successful: %d/%d\n", successCount, len(results))
-	if len(results) > 0 {
-		fmt.Printf("Avg Submit: %dms\n", totalSubmitMs/int64(len(results)))
-		fmt.Printf("Avg Total:  %dms\n", totalProcessMs/int64(len(results)))
+	// Output results
+	if *jsonOutput {
+		// JSON output
+		type jsonOutput struct {
+			JobType      string   `json:"job_type"`
+			TotalFiles   int      `json:"total_files"`
+			Successful   int      `json:"successful"`
+			AvgSubmitMs  int64    `json:"avg_submit_ms"`
+			AvgTotalMs   int64    `json:"avg_total_ms"`
+			Results      []result `json:"results"`
+		}
+
+		var totalSubmitMs int64
+		var totalProcessMs int64
+		successCount := 0
+
+		for _, r := range results {
+			totalSubmitMs += r.SubmitMs
+			totalProcessMs += r.TotalMs
+			if r.Status == "finished" || r.Status == "completed" {
+				successCount++
+			}
+		}
+
+		avgSubmitMs := int64(0)
+		avgTotalMs := int64(0)
+		if len(results) > 0 {
+			avgSubmitMs = totalSubmitMs / int64(len(results))
+			avgTotalMs = totalProcessMs / int64(len(results))
+		}
+
+		output := jsonOutput{
+			JobType:     *jobType,
+			TotalFiles:  len(results),
+			Successful:  successCount,
+			AvgSubmitMs: avgSubmitMs,
+			AvgTotalMs:  avgTotalMs,
+			Results:     results,
+		}
+
+		encoder := json.NewEncoder(os.Stdout)
+		encoder.SetIndent("", "  ")
+		if err := encoder.Encode(output); err != nil {
+			return fmt.Errorf("failed to encode JSON output: %w", err)
+		}
+	} else {
+		// Text output
+		fmt.Println("\n================================================================================")
+		fmt.Println("SUMMARY")
+		fmt.Println("================================================================================")
+		fmt.Printf("%-30s %10s %10s %10s %s\n", "File", "Size", "Submit", "Total", "Status")
+		fmt.Println("--------------------------------------------------------------------------------")
+
+		var totalSubmitMs int64
+		var totalProcessMs int64
+		successCount := 0
+
+		for _, r := range results {
+			if r.Error != "" {
+				fmt.Printf("%-30s %10s %10s %10s %s: %s\n",
+					truncate(r.File, 30),
+					formatBytes(r.Size),
+					"-",
+					"-",
+					r.Status,
+					r.Error)
+			} else {
+				fmt.Printf("%-30s %10s %10dms %10dms %s\n",
+					truncate(r.File, 30),
+					formatBytes(r.Size),
+					r.SubmitMs,
+					r.TotalMs,
+					r.Status)
+
+				totalSubmitMs += r.SubmitMs
+				totalProcessMs += r.TotalMs
+				if r.Status == "finished" || r.Status == "completed" {
+					successCount++
+				}
+			}
+		}
+
+		fmt.Println("--------------------------------------------------------------------------------")
+		fmt.Printf("Successful: %d/%d\n", successCount, len(results))
+		if len(results) > 0 {
+			fmt.Printf("Avg Submit: %dms\n", totalSubmitMs/int64(len(results)))
+			fmt.Printf("Avg Total:  %dms\n", totalProcessMs/int64(len(results)))
+		}
 	}
 
 	return nil
