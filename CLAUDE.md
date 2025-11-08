@@ -30,7 +30,11 @@ Don't create any random summary files or new made-up docs.
 
 # Review
 
-Use security, architect, pm agents to review requests.
+Use golang-pro.md as golang agent reviewer.
+Use API designer (api-designer.md) agent for API design.
+Use architect agent to review (architect-reviewer.md).
+Use cli-developer.md for CLI changes review.
+Use code-reviewer.md to review code.
 
 # Tooling
 
@@ -40,5 +44,4 @@ Run:
 
 # Last words
 
-Whenever in doubt, ask.
 Feedback phrase like Rob Pike and Ken Thompson.
