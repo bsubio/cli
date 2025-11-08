@@ -105,7 +105,7 @@ func runBench(args []string) error {
 
 		if !*jsonOutput {
 			fmt.Printf("  Job ID: %s\n", *job.Id)
-			fmt.Printf("  Submit time: %dms\n", submitDuration.Milliseconds())
+			fmt.Printf("  Submit time: %.2fs\n", float64(submitDuration.Milliseconds())/1000.0)
 		}
 
 		// Wait for completion
@@ -149,7 +149,7 @@ func runBench(args []string) error {
 
 		if !*jsonOutput {
 			fmt.Printf("  Status: %s\n", jobStatus)
-			fmt.Printf("  Total time: %dms\n", totalDuration.Milliseconds())
+			fmt.Printf("  Total time: %.2fs\n", float64(totalDuration.Milliseconds())/1000.0)
 
 			if errorMsg != "" {
 				fmt.Printf("  Error: %s\n", errorMsg)
@@ -199,7 +199,7 @@ func runBench(args []string) error {
 		fmt.Println("\n================================================================================")
 		fmt.Println("SUMMARY")
 		fmt.Println("================================================================================")
-		fmt.Printf("%-30s %10s %10s %10s %s\n", "File", "Size", "Submit", "Total", "Status")
+		fmt.Printf("%-30s %10s %10s %10s %s\n", "File", "Size", "Submit (s)", "Total (s)", "Status")
 		fmt.Println("--------------------------------------------------------------------------------")
 
 		var totalSubmitMs int64
@@ -216,11 +216,11 @@ func runBench(args []string) error {
 					r.Status,
 					r.Error)
 			} else {
-				fmt.Printf("%-30s %10s %10dms %10dms %s\n",
+				fmt.Printf("%-30s %10s %10.2f %10.2f %s\n",
 					truncate(r.File, 30),
 					formatBytes(r.Size),
-					r.SubmitMs,
-					r.TotalMs,
+					float64(r.SubmitMs)/1000.0,
+					float64(r.TotalMs)/1000.0,
 					r.Status)
 
 				totalSubmitMs += r.SubmitMs
@@ -234,8 +234,8 @@ func runBench(args []string) error {
 		fmt.Println("--------------------------------------------------------------------------------")
 		fmt.Printf("Successful: %d/%d\n", successCount, len(results))
 		if len(results) > 0 {
-			fmt.Printf("Avg Submit: %dms\n", totalSubmitMs/int64(len(results)))
-			fmt.Printf("Avg Total:  %dms\n", totalProcessMs/int64(len(results)))
+			fmt.Printf("Avg Submit: %.2fs\n", float64(totalSubmitMs)/1000.0/float64(len(results)))
+			fmt.Printf("Avg Total:  %.2fs\n", float64(totalProcessMs)/1000.0/float64(len(results)))
 		}
 	}
 
@@ -312,8 +312,8 @@ func runBenchDiff(args []string) error {
 	fmt.Printf("Job types: %s vs %s\n\n", bench1.JobType, bench2.JobType)
 
 	fmt.Printf("%-40s %20s %20s %12s\n", "Filename",
-		bench1.JobType,
-		bench2.JobType,
+		bench1.JobType+" (s)",
+		bench2.JobType+" (s)",
 		"Diff (%)")
 	fmt.Println("----------------------------------------------------------------------------------------------------")
 
@@ -322,9 +322,9 @@ func runBenchDiff(args []string) error {
 		r2, found := bench2Map[r1.File]
 
 		if !found {
-			fmt.Printf("%-40s %20s %20s %12s\n",
+			fmt.Printf("%-40s %20.2f %20s %12s\n",
 				r1.File,
-				fmt.Sprintf("%dms", r1.TotalMs),
+				float64(r1.TotalMs)/1000.0,
 				"-",
 				"-")
 			continue
@@ -349,19 +349,19 @@ func runBenchDiff(args []string) error {
 			diffStr = "+" + diffStr
 		}
 
-		fmt.Printf("%-40s %20dms %20dms %12s\n",
+		fmt.Printf("%-40s %20.2f %20.2f %12s\n",
 			r1.File,
-			r1.TotalMs,
-			r2.TotalMs,
+			float64(r1.TotalMs)/1000.0,
+			float64(r2.TotalMs)/1000.0,
 			diffStr)
 	}
 
 	// Print summary
 	fmt.Println("----------------------------------------------------------------------------------------------------")
-	fmt.Printf("%-40s %20dms %20dms",
+	fmt.Printf("%-40s %20.2f %20.2f",
 		"Average",
-		bench1.AvgTotalMs,
-		bench2.AvgTotalMs)
+		float64(bench1.AvgTotalMs)/1000.0,
+		float64(bench2.AvgTotalMs)/1000.0)
 
 	if bench1.AvgTotalMs > 0 {
 		avgDiffPct := ((float64(bench2.AvgTotalMs) - float64(bench1.AvgTotalMs)) / float64(bench1.AvgTotalMs)) * 100
