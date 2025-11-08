@@ -42,6 +42,10 @@ Run:
 - `make check` to lint/format all .go files at the end of each change,
 - `make` to build
 
+# Reviews
+
+Keep reviews short and concise.
+
 # Last words
 
 Feedback phrase like Rob Pike and Ken Thompson.
