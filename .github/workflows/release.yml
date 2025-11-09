@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'  # Only trigger on version tags like v1.0.0
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -12,7 +12,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -21,11 +22,102 @@ jobs:
         with:
           go-version: '1.25'
 
+      - name: Install golangci-lint v2
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Run make check
+        run: make check
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Determine next version
+        id: next_version
+        run: |
+          LATEST_TAG="${{ steps.get_tag.outputs.latest_tag }}"
+
+          # Extract version numbers
+          if [[ $LATEST_TAG =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+          else
+            MAJOR=0
+            MINOR=0
+            PATCH=0
+          fi
+
+          # Get commits since last tag
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s" --no-merges)
+
+          # Check for version bump indicators
+          BREAKING=$(echo "$COMMITS" | grep -i "BREAKING CHANGE" || true)
+          FEAT=$(echo "$COMMITS" | grep -iE "^feat(\(|:)" || true)
+          FIX=$(echo "$COMMITS" | grep -iE "^fix(\(|:)" || true)
+
+          # Determine version bump
+          if [ -n "$BREAKING" ]; then
+            # Breaking change: bump major
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            BUMP_TYPE="major"
+          elif [ -n "$FEAT" ]; then
+            # Feature: bump minor
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            BUMP_TYPE="minor"
+          elif [ -n "$FIX" ]; then
+            # Fix: bump patch
+            PATCH=$((PATCH + 1))
+            BUMP_TYPE="patch"
+          else
+            echo "No version bump needed (no feat/fix/breaking commits)"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "should_release=true" >> $GITHUB_OUTPUT
+
+          echo "Version bump: $LATEST_TAG → $NEW_VERSION ($BUMP_TYPE)"
+
+      - name: Create and push tag
+        if: steps.next_version.outputs.should_release == 'true'
+        run: |
+          NEW_VERSION="${{ steps.next_version.outputs.new_version }}"
+          BUMP_TYPE="${{ steps.next_version.outputs.bump_type }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION (${BUMP_TYPE} bump)"
+          git push origin "$NEW_VERSION"
+
+          echo "Created and pushed tag: $NEW_VERSION"
+
       - name: Run GoReleaser
+        if: steps.next_version.outputs.should_release == 'true'
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
-          version: latest
+          version: ~> v2
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        if: steps.next_version.outputs.should_release == 'true'
+        run: |
+          NEW_VERSION="${{ steps.next_version.outputs.new_version }}"
+          echo "✅ Release $NEW_VERSION created successfully!"
+          echo "🔗 https://github.com/${{ github.repository }}/releases/tag/$NEW_VERSION"
