@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - '**'  # Run on all branches
+    tags-ignore:
+      - '**'  # Don't run on tags (handled by release workflow)
+  pull_request:
 
 permissions:
   contents: read
