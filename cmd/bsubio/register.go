@@ -321,11 +321,7 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 
 		case http.StatusAccepted:
 			// Still pending, continue polling
-			if verbose || debug {
-				fmt.Print(".")
-			} else {
-				fmt.Print(".")
-			}
+			fmt.Print(".")
 
 		case http.StatusTooManyRequests:
 			// Slow down
