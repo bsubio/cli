@@ -14,6 +14,8 @@ Add -verbose for basic echoing of requests.
 Add -debug for more debugging output.
 For any server (listening) commands, print : "Listening: http://127.0.0.1:<port>".
 
+Whatever you change, test cmd/bsubio/static/*.md files for accuracy
+
 # Code style
 
 When you use variables, use them close to where they are used.
