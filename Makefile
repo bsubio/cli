@@ -1,4 +1,4 @@
-.PHONY: build build-static clean test release
+.PHONY: build build-static clean test release lint check fmt vet
 
 GO := go
 GOFLAGS := -v
@@ -32,10 +32,14 @@ fmt:
 vet:
 	go vet ./...
 
+lint:
+	which golangci-lint > /dev/null || (echo "golangci-lint not found. Install with: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest" && exit 1)
+	golangci-lint run ./...
+
 test:
 	$(GO) test $(GOFLAGS) ./...
 
-check: fmt vet test
+check: fmt vet lint test
 
 clean:
 	rm -rf bin
