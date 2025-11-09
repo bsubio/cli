@@ -158,7 +158,7 @@ func openBrowser(urlStr string) error {
 
 // requestDeviceCode initiates the device flow
 func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCode, verificationURI string, expiresIn, interval int, err error) {
-	url := fmt.Sprintf("%s/v1/auth/device/code", baseURL)
+	endpoint := fmt.Sprintf("%s/v1/auth/device/code", baseURL)
 
 	reqBody := map[string]string{
 		"hostname": hostname,
@@ -170,7 +170,7 @@ func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCo
 	}
 
 	if debug {
-		fmt.Printf("POST %s\n", url)
+		fmt.Printf("POST %s\n", endpoint)
 		fmt.Printf("Request body: %s\n", string(jsonData))
 	}
 
@@ -184,7 +184,7 @@ func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCo
 		Timeout:   10 * time.Second,
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", "", "", 0, 0, err
 	}
@@ -229,7 +229,7 @@ func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCo
 
 // pollForAuthorization polls the server until authorization is granted
 func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expiresIn int, verbose, debug bool) (apiKey string, userInfo *UserInfo, err error) {
-	url := fmt.Sprintf("%s/v1/auth/device/token", baseURL)
+	endpoint := fmt.Sprintf("%s/v1/auth/device/token", baseURL)
 	pollInterval := time.Duration(interval) * time.Second
 	deadline := time.Now().Add(time.Duration(expiresIn) * time.Second)
 
@@ -244,7 +244,7 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 	}
 
 	if debug {
-		fmt.Printf("Polling %s every %d seconds until %s\n", url, interval, deadline.Format(time.RFC3339))
+		fmt.Printf("Polling %s every %d seconds until %s\n", endpoint, interval, deadline.Format(time.RFC3339))
 	}
 
 	for {
@@ -263,10 +263,10 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 		}
 
 		if debug {
-			fmt.Printf("\nPOST %s\n", url)
+			fmt.Printf("\nPOST %s\n", endpoint)
 		}
 
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+		req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
 		if err != nil {
 			return "", nil, err
 		}
