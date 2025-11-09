@@ -156,6 +156,19 @@ func openBrowser(urlStr string) error {
 	return exec.Command(cmd, args...).Start()
 }
 
+// newHTTPClient creates a secure HTTP client with TLS 1.2+ and timeout
+func newHTTPClient() *http.Client {
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+	return &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+	}
+}
+
 // requestDeviceCode initiates the device flow
 func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCode, verificationURI string, expiresIn, interval int, err error) {
 	endpoint := fmt.Sprintf("%s/v1/auth/device/code", baseURL)
@@ -174,15 +187,7 @@ func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCo
 		fmt.Printf("Request body: %s\n", string(jsonData))
 	}
 
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
-	}
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   10 * time.Second,
-	}
+	client := newHTTPClient()
 
 	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -233,15 +238,7 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 	pollInterval := time.Duration(interval) * time.Second
 	deadline := time.Now().Add(time.Duration(expiresIn) * time.Second)
 
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
-	}
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   10 * time.Second,
-	}
+	client := newHTTPClient()
 
 	if debug {
 		fmt.Printf("Polling %s every %d seconds until %s\n", endpoint, interval, deadline.Format(time.RFC3339))
