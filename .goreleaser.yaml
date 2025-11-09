@@ -29,9 +29,8 @@ builds:
       - -trimpath
 
 checksum:
-  name_template: "{{ .ProjectName }}.sha256"
+  name_template: "{{ .ProjectName }}_{{ .Version }}.sha256"
   algorithm: sha256
-  split: true
 
 changelog:
   disable: false
@@ -78,9 +77,10 @@ release:
 
     #### Manual Installation
     1. Download the binary for your platform
-    2. Verify the checksum: `sha256sum -c checksums.txt`
-    3. Make it executable: `chmod +x bsubio-*`
-    4. Move to PATH: `sudo mv bsubio-* /usr/local/bin/bsubio`
+    2. Download the checksums file: `{{ .ProjectName }}_{{ .Version }}.sha256`
+    3. Verify the checksum: `sha256sum -c {{ .ProjectName }}_{{ .Version }}.sha256`
+    4. Make it executable: `chmod +x bsubio-*`
+    5. Move to PATH: `sudo mv bsubio-* /usr/local/bin/bsubio`
 
     ### Documentation
     - [GitHub Repository](https://github.com/bsubio/cli)
