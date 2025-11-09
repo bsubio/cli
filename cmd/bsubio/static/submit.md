@@ -5,7 +5,7 @@ Submit a job for processing
 ## Usage
 
 ```
-bsubio submit [options] <input_file> <type>
+bsubio submit [options] <type> <input_file> [<input_file2> ...]
 ```
 
 ## Options
@@ -15,22 +15,25 @@ bsubio submit [options] <input_file> <type>
 
 ## Arguments
 
-- `input_file` - Path to the input file
 - `type` - Job type
+- `input_file` - Path to the input file
 
 ## Examples
 
 Submit a job:
+
 ```
-bsubio submit data.json json_format
+bsubio submit json_format data.json
 ```
 
 Submit and wait for completion:
+
 ```
-bsubio submit -w input.txt passthrough
+bsubio submit -w passthrought input.txt
 ```
 
 Submit, wait, and save output to file:
+
 ```
-bsubio submit -w -o result.txt input.txt passthrough
+bsubio submit -w -o result.txt passthrough input.txt
 ```
