@@ -1,0 +1,28 @@
+---
+version: '2'
+
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+    - third_party$
+    - builtin$
+    - examples$
+
+linters:
+  exclusions:
+    generated: lax
+    paths:
+    - third_party$
+    - builtin$
+    - examples$
+    presets:
+    - comments
+    - common-false-positives
+    - legacy
+    - std-error-handling
+  settings:
+    errcheck:
+      exclude-functions:
+      - fmt.Fprintf
+      - fmt.Scanln
