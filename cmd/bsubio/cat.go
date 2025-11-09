@@ -10,16 +10,19 @@ import (
 
 func runCat(args []string) error {
 	fs := flag.NewFlagSet("cat", flag.ContinueOnError)
+	wait := fs.Bool("wait", false, "Wait for job to complete before showing output")
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio cat <jobid>\n\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio cat [options] <jobid>\n\n")
 		fmt.Fprintf(fs.Output(), "Print job output (stdout)\n\n")
 		fmt.Fprintf(fs.Output(), "Arguments:\n")
-		fmt.Fprintf(fs.Output(), "  jobid    Job ID\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
+		fs.PrintDefaults()
 	}
 
-	// Parse flags (none defined, but this handles help/errors)
+	// Parse flags
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -40,6 +43,38 @@ func runCat(args []string) error {
 	}
 
 	ctx := getContext()
+
+	// Check job status first
+	statusResp, err := client.GetJobWithResponse(ctx, bsubio.JobId(jobID))
+	if err != nil {
+		return fmt.Errorf("failed to get job status: %w", err)
+	}
+
+	if statusResp.StatusCode() != 200 {
+		return fmt.Errorf("failed to get job status: HTTP %d", statusResp.StatusCode())
+	}
+
+	if statusResp.JSON200 == nil || statusResp.JSON200.Data == nil {
+		return fmt.Errorf("job data is missing")
+	}
+
+	job := statusResp.JSON200.Data
+	if job.Status == nil {
+		return fmt.Errorf("job status is missing")
+	}
+
+	// If job is not completed and wait is not set, return helpful error
+	if *job.Status != "success" && *job.Status != "failed" {
+		if *wait {
+			fmt.Printf("Job is %s, waiting for completion...\n", *job.Status)
+			_, err = client.WaitForJob(ctx, bsubio.JobId(jobID))
+			if err != nil {
+				return fmt.Errorf("failed to wait for job: %w", err)
+			}
+		} else {
+			return fmt.Errorf("job is not complete (status: %s). Use 'bsubio wait %s' first or use -wait flag", *job.Status, jobID)
+		}
+	}
 
 	// Get job output
 	resp, err := client.GetJobOutput(ctx, bsubio.JobId(jobID))
