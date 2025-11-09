@@ -15,13 +15,13 @@ func runSubmit(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <input_file> <type>\n\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <type> <input_file>\n\n")
 		fmt.Fprintf(fs.Output(), "Submit a job for processing\n\n")
 		fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
 		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  type          Job type (e.g., pdf_extract)\n")
 		fmt.Fprintf(fs.Output(), "  input_file    Path to the input file\n")
-		fmt.Fprintf(fs.Output(), "  type          Job type\n")
 	}
 
 	// Parse flags
@@ -36,8 +36,8 @@ func runSubmit(args []string) error {
 		return fmt.Errorf("expected 2 arguments, got %d", len(remainingArgs))
 	}
 
-	inputFile := remainingArgs[0]
-	jobType := remainingArgs[1]
+	jobType := remainingArgs[0]
+	inputFile := remainingArgs[1]
 
 	// Validate that output file is only used with wait
 	if *outputFile != "" && !*wait {
