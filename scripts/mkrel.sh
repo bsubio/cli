@@ -197,6 +197,12 @@ main() {
     git push origin "$new_version"
     success "Tag pushed"
 
+    # Set GitHub token for goreleaser
+    export GITHUB_TOKEN=$(gh auth token)
+    if [ -z "$GITHUB_TOKEN" ]; then
+        error "Failed to get GitHub token. Run: gh auth login"
+    fi
+
     # Run goreleaser
     info "Running goreleaser..."
     if ! goreleaser release --clean; then
