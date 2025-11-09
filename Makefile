@@ -26,9 +26,17 @@ release:
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build -ldflags="$(LDFLAGS)" -o bin/release/bsubio-windows-amd64.exe ./cmd/bsubio
 	@echo "Release binaries built in bin/release/"
 
-clean:
-	rm -rf bin
-	rm -f bsubio
+fmt:
+	go fmt ./...
+
+vet:
+	go vet ./...
 
 test:
 	$(GO) test $(GOFLAGS) ./...
+
+check: fmt vet test
+
+clean:
+	rm -rf bin
+	rm -f bsubio

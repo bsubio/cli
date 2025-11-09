@@ -3,41 +3,78 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 )
 
 const (
 	defaultBaseURL = "https://app.bsub.io"
-	githubClientID = "Ov23liH6JRWDuToEcvw5"
 )
 
 // runRegister implements the register command using GitHub Device Flow
 func runRegister(args []string) error {
+	fs := flag.NewFlagSet("register", flag.ContinueOnError)
+
+	// Define flags
+	verbose := fs.Bool("verbose", false, "Verbose output")
+	debug := fs.Bool("debug", false, "Debug output")
+	baseURLFlag := fs.String("base-url", "", "Base URL override (default: https://app.bsub.io)")
+
+	// Custom usage function
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: bsubio register [options]\n\n")
+		fmt.Fprintf(fs.Output(), "Register with bsub.io using GitHub authentication\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
+		fs.PrintDefaults()
+	}
+
+	// Parse flags
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
 	// Get hostname
 	hostname, err := os.Hostname()
 	if err != nil {
 		return fmt.Errorf("failed to get hostname: %w", err)
 	}
 
-	// Allow override via environment for testing
-	baseURL := os.Getenv("BSUBIO_BASE_URL")
+	// Determine base URL (priority: flag > environment > default)
+	baseURL := *baseURLFlag
 	if baseURL == "" {
-		baseURL = defaultBaseURL
+		baseURL = os.Getenv("BSUBIO_BASE_URL")
+		if baseURL == "" {
+			baseURL = defaultBaseURL
+		}
+	}
+
+	if *verbose || *debug {
+		fmt.Printf("Using base URL: %s\n", baseURL)
+		fmt.Printf("Hostname: %s\n", hostname)
 	}
 
 	fmt.Println("Registering with bsub.io using GitHub authentication...")
 	fmt.Println()
 
 	// Step 1: Request device code
-	deviceCode, userCode, verificationURI, expiresIn, interval, err := requestDeviceCode(baseURL, hostname)
+	if *verbose || *debug {
+		fmt.Printf("Requesting device code from %s/v1/auth/device/code\n", baseURL)
+	}
+	deviceCode, userCode, verificationURI, expiresIn, interval, err := requestDeviceCode(baseURL, hostname, *debug)
 	if err != nil {
 		return fmt.Errorf("failed to request device code: %w", err)
+	}
+
+	if *debug {
+		fmt.Printf("Device code received (expires in %d seconds, poll interval: %d seconds)\n", expiresIn, interval)
 	}
 
 	// Step 2: Display code and prompt user
@@ -48,14 +85,20 @@ func runRegister(args []string) error {
 	fmt.Scanln()
 
 	// Open browser
+	if *verbose || *debug {
+		fmt.Printf("\nOpening browser to: %s\n", verificationURI)
+	}
 	if err := openBrowser(verificationURI); err != nil {
 		fmt.Printf("\nCould not open browser automatically. Please visit the URL above manually.\n")
+		if *debug {
+			fmt.Printf("Browser error: %v\n", err)
+		}
 	}
 
 	fmt.Println("Waiting for authorization...")
 
 	// Step 3: Poll for authorization
-	apiKey, userInfo, err := pollForAuthorization(baseURL, deviceCode, userCode, interval, expiresIn)
+	apiKey, userInfo, err := pollForAuthorization(baseURL, deviceCode, userCode, interval, expiresIn, *verbose, *debug)
 	if err != nil {
 		return fmt.Errorf("\nauthorization failed: %w", err)
 	}
@@ -78,20 +121,33 @@ func runRegister(args []string) error {
 }
 
 // openBrowser opens the specified URL in the user's default browser
-func openBrowser(url string) error {
+func openBrowser(urlStr string) error {
+	parsed, err := url.Parse(urlStr)
+	if err != nil {
+		return fmt.Errorf("invalid verification URL: %w", err)
+	}
+
+	if parsed.Scheme != "https" {
+		return fmt.Errorf("verification URL must use HTTPS")
+	}
+
+	if !strings.HasSuffix(parsed.Host, ".bsub.io") && parsed.Host != "bsub.io" {
+		return fmt.Errorf("unexpected verification host: %s", parsed.Host)
+	}
+
 	var cmd string
 	var args []string
 
 	switch runtime.GOOS {
 	case "darwin":
 		cmd = "open"
-		args = []string{url}
+		args = []string{urlStr}
 	case "linux":
 		cmd = "xdg-open"
-		args = []string{url}
+		args = []string{urlStr}
 	case "windows":
 		cmd = "cmd"
-		args = []string{"/c", "start", url}
+		args = []string{"/c", "start", urlStr}
 	default:
 		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}
@@ -100,7 +156,7 @@ func openBrowser(url string) error {
 }
 
 // requestDeviceCode initiates the device flow
-func requestDeviceCode(baseURL, hostname string) (deviceCode, userCode, verificationURI string, expiresIn, interval int, err error) {
+func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCode, verificationURI string, expiresIn, interval int, err error) {
 	url := fmt.Sprintf("%s/v1/auth/device/code", baseURL)
 
 	reqBody := map[string]string{
@@ -112,14 +168,26 @@ func requestDeviceCode(baseURL, hostname string) (deviceCode, userCode, verifica
 		return "", "", "", 0, 0, err
 	}
 
+	if debug {
+		fmt.Printf("POST %s\n", url)
+		fmt.Printf("Request body: %s\n", string(jsonData))
+	}
+
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", "", "", 0, 0, err
 	}
 	defer resp.Body.Close()
 
+	if debug {
+		fmt.Printf("Response status: %d\n", resp.StatusCode)
+	}
+
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", "", "", 0, 0, fmt.Errorf("failed to read response: %w", err)
+		}
 		return "", "", "", 0, 0, fmt.Errorf("server returned %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -139,12 +207,16 @@ func requestDeviceCode(baseURL, hostname string) (deviceCode, userCode, verifica
 }
 
 // pollForAuthorization polls the server until authorization is granted
-func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expiresIn int) (apiKey string, userInfo *UserInfo, err error) {
+func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expiresIn int, verbose, debug bool) (apiKey string, userInfo *UserInfo, err error) {
 	url := fmt.Sprintf("%s/v1/auth/device/token", baseURL)
 	pollInterval := time.Duration(interval) * time.Second
 	deadline := time.Now().Add(time.Duration(expiresIn) * time.Second)
 
 	client := &http.Client{Timeout: 10 * time.Second}
+
+	if debug {
+		fmt.Printf("Polling %s every %d seconds until %s\n", url, interval, deadline.Format(time.RFC3339))
+	}
 
 	for {
 		if time.Now().After(deadline) {
@@ -161,6 +233,10 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 			return "", nil, err
 		}
 
+		if debug {
+			fmt.Printf("\nPOST %s\n", url)
+		}
+
 		resp, err := client.Post(url, "application/json", bytes.NewBuffer(jsonData))
 		if err != nil {
 			return "", nil, err
@@ -170,6 +246,10 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 		resp.Body.Close()
 		if err != nil {
 			return "", nil, err
+		}
+
+		if debug {
+			fmt.Printf("Response status: %d\n", resp.StatusCode)
 		}
 
 		// Handle different response status codes
@@ -196,12 +276,19 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 					FirstName: response.User.FirstName,
 					LastName:  response.User.LastName,
 				}
+				if verbose || debug {
+					fmt.Printf("\nAuthorization successful for %s\n", userInfo.Email)
+				}
 				return response.APIKey, userInfo, nil
 			}
 
 		case http.StatusAccepted:
 			// Still pending, continue polling
-			fmt.Print(".")
+			if verbose || debug {
+				fmt.Print(".")
+			} else {
+				fmt.Print(".")
+			}
 
 		case http.StatusTooManyRequests:
 			// Slow down
@@ -209,6 +296,9 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 				Interval int `json:"interval"`
 			}
 			if err := json.Unmarshal(body, &response); err == nil && response.Interval > 0 {
+				if debug {
+					fmt.Printf("\nRate limited, increasing poll interval to %d seconds\n", response.Interval)
+				}
 				pollInterval = time.Duration(response.Interval) * time.Second
 			}
 			fmt.Print(".")
