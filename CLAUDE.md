@@ -12,7 +12,6 @@ Apply security principles to the code.
 
 Add -verbose for basic echoing of requests.
 Add -debug for more debugging output.
-Allow -listen <addr>:<port> to be passed for custom addr/port.
 For any server (listening) commands, print : "Listening: http://127.0.0.1:<port>".
 
 # Code style
