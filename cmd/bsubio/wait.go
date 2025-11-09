@@ -17,12 +17,12 @@ func runWait(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio wait [options] <jobid>\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Wait for a job to complete\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio wait [options] <jobid>\n\n")
+		fmt.Fprintf(fs.Output(), "Wait for a job to complete\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
-		_, _ = fmt.Fprintf(fs.Output(), "\nArguments:\n")
-		_, _ = fmt.Fprintf(fs.Output(), "  jobid    Job ID to wait for\n")
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID to wait for\n")
 	}
 
 	// Parse flags

@@ -25,9 +25,9 @@ func runBench(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio bench [options]\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Benchmark job processing with test files\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio bench [options]\n\n")
+		fmt.Fprintf(fs.Output(), "Benchmark job processing with test files\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
 	}
 

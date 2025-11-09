@@ -13,10 +13,10 @@ func runCat(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio cat <jobid>\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Print job output (stdout)\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Arguments:\n")
-		_, _ = fmt.Fprintf(fs.Output(), "  jobid    Job ID\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio cat <jobid>\n\n")
+		fmt.Fprintf(fs.Output(), "Print job output (stdout)\n\n")
+		fmt.Fprintf(fs.Output(), "Arguments:\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID\n")
 	}
 
 	// Parse flags (none defined, but this handles help/errors)

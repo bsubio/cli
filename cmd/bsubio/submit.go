@@ -15,13 +15,13 @@ func runSubmit(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <input_file> <type>\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Submit a job for processing\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <input_file> <type>\n\n")
+		fmt.Fprintf(fs.Output(), "Submit a job for processing\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
-		_, _ = fmt.Fprintf(fs.Output(), "\nArguments:\n")
-		_, _ = fmt.Fprintf(fs.Output(), "  input_file    Path to the input file\n")
-		_, _ = fmt.Fprintf(fs.Output(), "  type          Job type\n")
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  input_file    Path to the input file\n")
+		fmt.Fprintf(fs.Output(), "  type          Job type\n")
 	}
 
 	// Parse flags

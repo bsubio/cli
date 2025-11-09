@@ -15,12 +15,12 @@ func runCancel(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio cancel [options] [jobid]\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Cancel a job or all jobs\n\n")
-		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio cancel [options] [jobid]\n\n")
+		fmt.Fprintf(fs.Output(), "Cancel a job or all jobs\n\n")
+		fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
-		_, _ = fmt.Fprintf(fs.Output(), "\nArguments:\n")
-		_, _ = fmt.Fprintf(fs.Output(), "  jobid    Job ID to cancel (not required with -a)\n")
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID to cancel (not required with -a)\n")
 	}
 
 	// Parse flags
