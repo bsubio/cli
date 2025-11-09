@@ -10,20 +10,21 @@ import (
 func runJobs(args []string) error {
 	var (
 		status string
-		limit  int = 20 // default limit
+		limit  = 20 // default limit
 	)
 
 	// Parse flags
 	i := 0
 	for i < len(args) {
 		arg := args[i]
-		if arg == "--status" {
+		switch arg {
+		case "--status":
 			if i+1 >= len(args) {
 				return fmt.Errorf("--status flag requires a value")
 			}
 			status = args[i+1]
 			i += 2
-		} else if arg == "--limit" {
+		case "--limit":
 			if i+1 >= len(args) {
 				return fmt.Errorf("--limit flag requires a value")
 			}
@@ -33,7 +34,7 @@ func runJobs(args []string) error {
 				return fmt.Errorf("invalid limit value: %s", args[i+1])
 			}
 			i += 2
-		} else {
+		default:
 			return fmt.Errorf("unknown flag: %s", arg)
 		}
 	}

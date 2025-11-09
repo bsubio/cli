@@ -15,13 +15,13 @@ func runSubmit(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <input_file> <type>\n\n")
-		fmt.Fprintf(fs.Output(), "Submit a job for processing\n\n")
-		fmt.Fprintf(fs.Output(), "Options:\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <input_file> <type>\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Submit a job for processing\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
-		fmt.Fprintf(fs.Output(), "\nArguments:\n")
-		fmt.Fprintf(fs.Output(), "  input_file    Path to the input file\n")
-		fmt.Fprintf(fs.Output(), "  type          Job type\n")
+		_, _ = fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		_, _ = fmt.Fprintf(fs.Output(), "  input_file    Path to the input file\n")
+		_, _ = fmt.Fprintf(fs.Output(), "  type          Job type\n")
 	}
 
 	// Parse flags
@@ -91,7 +91,9 @@ func runSubmit(args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get job output: %w", err)
 		}
-		defer outputResp.Body.Close()
+		defer func() {
+			_ = outputResp.Body.Close()
+		}()
 
 		// Write output to file or stdout
 		if *outputFile != "" {
@@ -99,7 +101,9 @@ func runSubmit(args []string) error {
 			if err != nil {
 				return fmt.Errorf("failed to create output file: %w", err)
 			}
-			defer file.Close()
+			defer func() {
+				_ = file.Close()
+			}()
 
 			if _, err := file.ReadFrom(outputResp.Body); err != nil {
 				return fmt.Errorf("failed to write output file: %w", err)

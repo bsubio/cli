@@ -25,9 +25,9 @@ func runBench(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio bench [options]\n\n")
-		fmt.Fprintf(fs.Output(), "Benchmark job processing with test files\n\n")
-		fmt.Fprintf(fs.Output(), "Options:\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio bench [options]\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Benchmark job processing with test files\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
 	}
 
@@ -389,16 +389,4 @@ func readBenchmarkFile(path string) (*benchOutput, error) {
 	}
 
 	return &output, nil
-}
-
-func truncateJobType(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	// Remove common prefixes/suffixes to shorten
-	s = filepath.Base(s)
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen-2] + ".."
 }

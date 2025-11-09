@@ -31,9 +31,9 @@ func runRegister(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio register [options]\n\n")
-		fmt.Fprintf(fs.Output(), "Register with bsub.io using GitHub authentication\n\n")
-		fmt.Fprintf(fs.Output(), "Options:\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio register [options]\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Register with bsub.io using GitHub authentication\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
 	}
 

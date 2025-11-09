@@ -15,12 +15,12 @@ func runRm(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio rm [options] [jobid]\n\n")
-		fmt.Fprintf(fs.Output(), "Delete a job or all jobs\n\n")
-		fmt.Fprintf(fs.Output(), "Options:\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio rm [options] [jobid]\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Delete a job or all jobs\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
-		fmt.Fprintf(fs.Output(), "\nArguments:\n")
-		fmt.Fprintf(fs.Output(), "  jobid    Job ID to delete (not required with -a)\n")
+		_, _ = fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		_, _ = fmt.Fprintf(fs.Output(), "  jobid    Job ID to delete (not required with -a)\n")
 	}
 
 	// Parse flags

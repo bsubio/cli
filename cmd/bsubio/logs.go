@@ -13,10 +13,10 @@ func runLogs(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio logs <jobid>\n\n")
-		fmt.Fprintf(fs.Output(), "Show job logs (stderr)\n\n")
-		fmt.Fprintf(fs.Output(), "Arguments:\n")
-		fmt.Fprintf(fs.Output(), "  jobid    Job ID\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Usage: bsubio logs <jobid>\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Show job logs (stderr)\n\n")
+		_, _ = fmt.Fprintf(fs.Output(), "Arguments:\n")
+		_, _ = fmt.Fprintf(fs.Output(), "  jobid    Job ID\n")
 	}
 
 	// Parse flags (none defined, but this handles help/errors)
@@ -46,7 +46,9 @@ func runLogs(args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get job logs: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("failed to get job logs: HTTP %d", resp.StatusCode)
