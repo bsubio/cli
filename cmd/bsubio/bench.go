@@ -390,15 +390,3 @@ func readBenchmarkFile(path string) (*benchOutput, error) {
 
 	return &output, nil
 }
-
-func truncateJobType(s string, maxLen int) string {
-	if len(s) <= maxLen {
-		return s
-	}
-	// Remove common prefixes/suffixes to shorten
-	s = filepath.Base(s)
-	if len(s) <= maxLen {
-		return s
-	}
-	return s[:maxLen-2] + ".."
-}

@@ -12,7 +12,6 @@ Apply security principles to the code.
 
 Add -verbose for basic echoing of requests.
 Add -debug for more debugging output.
-Allow -listen <addr>:<port> to be passed for custom addr/port.
 For any server (listening) commands, print : "Listening: http://127.0.0.1:<port>".
 
 # Code style
@@ -36,11 +35,18 @@ Use architect agent to review (architect-reviewer.md).
 Use cli-developer.md for CLI changes review.
 Use code-reviewer.md to review code.
 
+Repo follows Conventional Commits.
+PR title should start with "Fix:" or "Feat;".
+
 # Tooling
 
 Run:
 - `make check` to lint/format all .go files at the end of each change,
 - `make` to build
+
+# Reviews
+
+Keep reviews short and concise.
 
 # Last words
 

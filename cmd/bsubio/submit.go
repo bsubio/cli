@@ -91,7 +91,9 @@ func runSubmit(args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get job output: %w", err)
 		}
-		defer outputResp.Body.Close()
+		defer func() {
+			_ = outputResp.Body.Close()
+		}()
 
 		// Write output to file or stdout
 		if *outputFile != "" {
@@ -99,7 +101,9 @@ func runSubmit(args []string) error {
 			if err != nil {
 				return fmt.Errorf("failed to create output file: %w", err)
 			}
-			defer file.Close()
+			defer func() {
+				_ = file.Close()
+			}()
 
 			if _, err := file.ReadFrom(outputResp.Body); err != nil {
 				return fmt.Errorf("failed to write output file: %w", err)

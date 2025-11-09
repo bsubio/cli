@@ -1,4 +1,4 @@
-.PHONY: build build-static clean test release
+.PHONY: build build-static clean test release lint check fmt vet
 
 GO := go
 GOFLAGS := -v
@@ -26,9 +26,21 @@ release:
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GO) build -ldflags="$(LDFLAGS)" -o bin/release/bsubio-windows-amd64.exe ./cmd/bsubio
 	@echo "Release binaries built in bin/release/"
 
-clean:
-	rm -rf bin
-	rm -f bsubio
+fmt:
+	go fmt ./...
+
+vet:
+	go vet ./...
+
+lint:
+	which golangci-lint > /dev/null || (echo "golangci-lint not found. Install with: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest" && exit 1)
+	golangci-lint run ./...
 
 test:
 	$(GO) test $(GOFLAGS) ./...
+
+check: fmt vet lint test
+
+clean:
+	rm -rf bin
+	rm -f bsubio

@@ -26,6 +26,8 @@ func run() error {
 	args := os.Args[2:]
 
 	switch command {
+	case "register":
+		return runRegister(args)
 	case "config":
 		return runConfig(args)
 	case "submit":
@@ -66,7 +68,8 @@ USAGE:
     bsubio <command> [options] [arguments]
 
 COMMANDS:
-    config                      Configure API key
+    register                    Register with bsub.io using GitHub
+    config                      Configure API key manually
     submit [-o <file>] [-w] <input_file> <type>
                                 Submit a job for processing
     wait [-v] [-t <seconds>] <jobid>
@@ -85,6 +88,7 @@ COMMANDS:
     help [command]              Show help message or help for a specific command
 
 EXAMPLES:
+    bsubio register
     bsubio config
     bsubio submit data.json json_format
     bsubio submit -w -o result.txt input.txt passthrough
