@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -82,7 +83,7 @@ func runRegister(args []string) error {
 	fmt.Printf("Press Enter to open %s in your browser...", verificationURI)
 
 	// Wait for user to press Enter
-	fmt.Scanln()
+	_, _ = fmt.Scanln()
 
 	// Open browser
 	if *verbose || *debug {
@@ -173,11 +174,31 @@ func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCo
 		fmt.Printf("Request body: %s\n", string(jsonData))
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", "", "", 0, 0, err
 	}
-	defer resp.Body.Close()
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", "", "", 0, 0, err
+	}
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil && debug {
+			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
 
 	if debug {
 		fmt.Printf("Response status: %d\n", resp.StatusCode)
@@ -212,7 +233,15 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 	pollInterval := time.Duration(interval) * time.Second
 	deadline := time.Now().Add(time.Duration(expiresIn) * time.Second)
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
+	}
 
 	if debug {
 		fmt.Printf("Polling %s every %d seconds until %s\n", url, interval, deadline.Format(time.RFC3339))
@@ -237,13 +266,21 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 			fmt.Printf("\nPOST %s\n", url)
 		}
 
-		resp, err := client.Post(url, "application/json", bytes.NewBuffer(jsonData))
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+		if err != nil {
+			return "", nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := client.Do(req)
 		if err != nil {
 			return "", nil, err
 		}
 
 		body, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		if closeErr := resp.Body.Close(); closeErr != nil && debug {
+			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+		}
 		if err != nil {
 			return "", nil, err
 		}
