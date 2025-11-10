@@ -69,7 +69,7 @@ any point in time.
 Then you can do dry run:
 
     $ echo 123 > input.txt
-    $ bsubio submit input.txt passthrough
+    $ bsubio submit input.txt passthru
 
 Expected output will be similar to:
 
@@ -83,10 +83,10 @@ At any time you can see all jobs:
 
     JOB ID                                   TYPE         STATUS          CREATED AT
     --------------------------------------------------------------------------------
-    019a3256-26b4-7f1f-b1aa-0b45ab7b371d     passthrough  pending         2025-10-29 23:38
+    019a3256-26b4-7f1f-b1aa-0b45ab7b371d     passthru     pending         2025-10-29 23:38
 
 This will submit the file `input.txt` that we just created with its  sample "123" string to `bsub.io` infrastructure.
-The `passthrough` is like `cat` in command line: it should read input and print output without modification.
+The `passthru` is like `cat` in command line: it should read input and print output without modification.
 
     bsubio status 019a3256-26b4-7f1f-b1aa-0b45ab7b371d
     bsubio cat 019a3256-26b4-7f1f-b1aa-0b45ab7b371d

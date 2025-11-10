@@ -29,11 +29,11 @@ bsubio submit json_format data.json
 Submit and wait for completion:
 
 ```
-bsubio submit -w passthrought input.txt
+bsubio submit -w passthru input.txt
 ```
 
 Submit, wait, and save output to file:
 
 ```
-bsubio submit -w -o result.txt passthrough input.txt
+bsubio submit -w -o result.txt passthru input.txt
 ```

@@ -64,12 +64,19 @@ func runCat(args []string) error {
 	}
 
 	// If job is not completed and wait is not set, return helpful error
-	if *job.Status != "success" && *job.Status != "failed" {
+	if *job.Status != "finished" && *job.Status != "failed" {
 		if *wait {
 			fmt.Printf("Job is %s, waiting for completion...\n", *job.Status)
-			_, err = client.WaitForJob(ctx, bsubio.JobId(jobID))
+			finishedJob, err := client.WaitForJob(ctx, bsubio.JobId(jobID))
 			if err != nil {
 				return fmt.Errorf("failed to wait for job: %w", err)
+			}
+
+			if finishedJob.Status != nil && *finishedJob.Status == "failed" {
+				if finishedJob.ErrorMessage != nil {
+					return fmt.Errorf("job failed: %s", *finishedJob.ErrorMessage)
+				}
+				return fmt.Errorf("job failed")
 			}
 		} else {
 			return fmt.Errorf("job is not complete (status: %s). Use 'bsubio wait %s' first or use -wait flag", *job.Status, jobID)
