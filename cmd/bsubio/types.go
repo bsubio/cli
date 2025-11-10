@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 func runTypes(args []string) error {
@@ -44,8 +45,8 @@ func runTypes(args []string) error {
 		}
 
 		mime := ""
-		if jobType.Mime != nil {
-			mime = *jobType.Mime
+		if jobType.Mime != nil && len(*jobType.Mime) > 0 {
+			mime = strings.Join(*jobType.Mime, ", ")
 		}
 
 		description := ""
