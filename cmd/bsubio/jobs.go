@@ -85,7 +85,7 @@ func runJobs(args []string) error {
 	for _, job := range jobs {
 		jobID := ""
 		if job.Id != nil {
-			jobID = *job.Id
+			jobID = job.Id.String()
 		}
 
 		jobType := ""

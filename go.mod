@@ -13,3 +13,5 @@ require (
 	github.com/oapi-codegen/runtime v1.1.2 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 )
+
+replace github.com/bsubio/bsubio-go => ../bsubio-go

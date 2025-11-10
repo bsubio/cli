@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bsubio/bsubio-go"
+	"github.com/google/uuid"
 )
 
 func runRm(args []string) error {
@@ -70,23 +71,27 @@ func runRm(args []string) error {
 		for _, job := range jobs {
 			deleteResp, err := client.DeleteJobWithResponse(ctx, *job.Id)
 			if err != nil {
-				fmt.Printf("Failed to delete job %s: %v\n", *job.Id, err)
+				fmt.Printf("Failed to delete job %s: %v\n", job.Id.String(), err)
 				continue
 			}
 
 			if deleteResp.StatusCode() != 200 && deleteResp.StatusCode() != 204 {
-				fmt.Printf("Failed to delete job %s: HTTP %d\n", *job.Id, deleteResp.StatusCode())
+				fmt.Printf("Failed to delete job %s: HTTP %d\n", job.Id.String(), deleteResp.StatusCode())
 				continue
 			}
 
-			fmt.Printf("Deleted job: %s\n", *job.Id)
+			fmt.Printf("Deleted job: %s\n", job.Id.String())
 			deletedCount++
 		}
 
 		fmt.Printf("Deleted %d job(s)\n", deletedCount)
 	} else {
 		// Delete single job
-		resp, err := client.DeleteJobWithResponse(ctx, bsubio.JobId(jobID))
+		jobUUID, err := uuid.Parse(jobID)
+		if err != nil {
+			return fmt.Errorf("invalid job ID: %w", err)
+		}
+		resp, err := client.DeleteJobWithResponse(ctx, jobUUID)
 		if err != nil {
 			return fmt.Errorf("failed to delete job: %w", err)
 		}

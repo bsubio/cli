@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bsubio/bsubio-go"
+	"github.com/google/uuid"
 )
 
 func runLogs(args []string) error {
@@ -33,6 +33,11 @@ func runLogs(args []string) error {
 
 	jobID := remainingArgs[0]
 
+	jobUUID, err := uuid.Parse(jobID)
+	if err != nil {
+		return fmt.Errorf("invalid job ID: %w", err)
+	}
+
 	// Create client
 	client, err := createClient()
 	if err != nil {
@@ -42,7 +47,7 @@ func runLogs(args []string) error {
 	ctx := getContext()
 
 	// Get job logs
-	resp, err := client.GetJobLogs(ctx, bsubio.JobId(jobID))
+	resp, err := client.GetJobLogs(ctx, jobUUID)
 	if err != nil {
 		return fmt.Errorf("failed to get job logs: %w", err)
 	}

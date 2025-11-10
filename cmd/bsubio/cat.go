@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bsubio/bsubio-go"
+	"github.com/google/uuid"
 )
 
 func runCat(args []string) error {
@@ -36,6 +36,11 @@ func runCat(args []string) error {
 
 	jobID := remainingArgs[0]
 
+	jobUUID, err := uuid.Parse(jobID)
+	if err != nil {
+		return fmt.Errorf("invalid job ID: %w", err)
+	}
+
 	// Create client
 	client, err := createClient()
 	if err != nil {
@@ -45,7 +50,7 @@ func runCat(args []string) error {
 	ctx := getContext()
 
 	// Check job status first
-	statusResp, err := client.GetJobWithResponse(ctx, bsubio.JobId(jobID))
+	statusResp, err := client.GetJobWithResponse(ctx, jobUUID)
 	if err != nil {
 		return fmt.Errorf("failed to get job status: %w", err)
 	}
@@ -67,7 +72,7 @@ func runCat(args []string) error {
 	if *job.Status != "finished" && *job.Status != "failed" {
 		if *wait {
 			fmt.Printf("Job is %s, waiting for completion...\n", *job.Status)
-			finishedJob, err := client.WaitForJob(ctx, bsubio.JobId(jobID))
+			finishedJob, err := client.WaitForJob(ctx, jobUUID)
 			if err != nil {
 				return fmt.Errorf("failed to wait for job: %w", err)
 			}
@@ -84,7 +89,7 @@ func runCat(args []string) error {
 	}
 
 	// Get job output
-	resp, err := client.GetJobOutput(ctx, bsubio.JobId(jobID))
+	resp, err := client.GetJobOutput(ctx, jobUUID)
 	if err != nil {
 		return fmt.Errorf("failed to get job output: %w", err)
 	}

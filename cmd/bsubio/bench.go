@@ -104,7 +104,7 @@ func runBench(args []string) error {
 		}
 
 		if !*jsonOutput {
-			fmt.Printf("  Job ID: %s\n", *job.Id)
+			fmt.Printf("  Job ID: %s\n", job.Id.String())
 			fmt.Printf("  Submit time: %.2fs\n", float64(submitDuration.Milliseconds())/1000.0)
 		}
 
@@ -116,7 +116,7 @@ func runBench(args []string) error {
 			results = append(results, benchResult{
 				File:     filepath.Base(testFile),
 				Size:     fileInfo.Size(),
-				JobID:    *job.Id,
+				JobID:    job.Id.String(),
 				SubmitMs: submitDuration.Milliseconds(),
 				Status:   "wait_failed",
 				Error:    err.Error(),
@@ -140,7 +140,7 @@ func runBench(args []string) error {
 		results = append(results, benchResult{
 			File:     filepath.Base(testFile),
 			Size:     fileInfo.Size(),
-			JobID:    *job.Id,
+			JobID:    job.Id.String(),
 			SubmitMs: submitDuration.Milliseconds(),
 			TotalMs:  totalDuration.Milliseconds(),
 			Status:   jobStatus,

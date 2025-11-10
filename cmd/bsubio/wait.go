@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bsubio/bsubio-go"
+	"github.com/google/uuid"
 )
 
 func runWait(args []string) error {
@@ -39,6 +39,11 @@ func runWait(args []string) error {
 
 	jobID := remainingArgs[0]
 
+	jobUUID, err := uuid.Parse(jobID)
+	if err != nil {
+		return fmt.Errorf("invalid job ID: %w", err)
+	}
+
 	// Create client
 	client, err := createClient()
 	if err != nil {
@@ -53,7 +58,7 @@ func runWait(args []string) error {
 	}
 
 	for {
-		resp, err := client.GetJobWithResponse(ctx, bsubio.JobId(jobID))
+		resp, err := client.GetJobWithResponse(ctx, jobUUID)
 		if err != nil {
 			return fmt.Errorf("failed to get job status: %w", err)
 		}

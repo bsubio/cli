@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bsubio/bsubio-go"
+	"github.com/google/uuid"
 )
 
 func runCancel(args []string) error {
@@ -88,7 +89,11 @@ func runCancel(args []string) error {
 		fmt.Printf("Canceled %d job(s)\n", canceledCount)
 	} else {
 		// Cancel single job
-		resp, err := client.CancelJobWithResponse(ctx, bsubio.JobId(jobID))
+		jobUUID, err := uuid.Parse(jobID)
+		if err != nil {
+			return fmt.Errorf("invalid job ID: %w", err)
+		}
+		resp, err := client.CancelJobWithResponse(ctx, jobUUID)
 		if err != nil {
 			return fmt.Errorf("failed to cancel job: %w", err)
 		}

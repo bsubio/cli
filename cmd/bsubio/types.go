@@ -34,13 +34,18 @@ func runTypes(args []string) error {
 		return nil
 	}
 
-	fmt.Println("Available Job Types:")
+	fmt.Printf("%-20s %-30s %s\n", "Worker Type", "MIME", "Description")
 	fmt.Println("--------------------------------------------------------------------------------")
 
 	for _, jobType := range types {
-		name := ""
-		if jobType.Name != nil {
-			name = *jobType.Name
+		workerType := ""
+		if jobType.Type != nil {
+			workerType = *jobType.Type
+		}
+
+		mime := ""
+		if jobType.Mime != nil {
+			mime = *jobType.Mime
 		}
 
 		description := ""
@@ -48,7 +53,7 @@ func runTypes(args []string) error {
 			description = *jobType.Description
 		}
 
-		fmt.Printf("%-20s %s\n", name, description)
+		fmt.Printf("%-20s %-30s %s\n", workerType, mime, description)
 	}
 
 	return nil
