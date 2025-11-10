@@ -91,7 +91,7 @@ EXAMPLES:
     bsubio register
     bsubio config
     bsubio submit data.json json_format
-    bsubio submit -w -o result.txt input.txt passthrough
+    bsubio submit -w -o result.txt input.txt passthru
     bsubio wait -v job_abc123
     bsubio cat job_abc123
     bsubio logs job_abc123
