@@ -75,14 +75,14 @@ func runWait(args []string) error {
 		job := resp.JSON200.Data
 
 		if *verbose && job.Status != nil {
-			fmt.Printf("Status: %s\n", *job.Status)
+			fmt.Fprintf(os.Stderr, "Status: %s\n", *job.Status)
 		}
 
 		// Check if job is in a terminal state
 		if job.Status != nil {
 			switch *job.Status {
 			case "finished":
-				fmt.Printf("Job completed successfully\n")
+				fmt.Fprintf(os.Stderr, "Job completed successfully\n")
 				return nil
 			case "failed":
 				if job.ErrorMessage != nil {

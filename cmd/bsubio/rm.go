@@ -81,11 +81,11 @@ func runRm(args []string) error {
 				continue
 			}
 
-			fmt.Printf("Deleted job: %s\n", job.Id.String())
+			fmt.Fprintf(os.Stderr, "Deleted job: %s\n", job.Id.String())
 			deletedCount++
 		}
 
-		fmt.Printf("Deleted %d job(s)\n", deletedCount)
+		fmt.Fprintf(os.Stderr, "Deleted %d job(s)\n", deletedCount)
 	} else {
 		// Delete single job
 		jobUUID, err := uuid.Parse(jobID)
@@ -101,7 +101,7 @@ func runRm(args []string) error {
 			return fmt.Errorf("failed to delete job: HTTP %d", resp.StatusCode())
 		}
 
-		fmt.Printf("Job deleted: %s\n", jobID)
+		fmt.Fprintf(os.Stderr, "Job deleted: %s\n", jobID)
 	}
 
 	return nil

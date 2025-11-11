@@ -67,7 +67,7 @@ func runSubmit(args []string) error {
 		return fmt.Errorf("failed to submit job: %w", err)
 	}
 
-	fmt.Printf("Job submitted: %s\n", *job.Id)
+	fmt.Fprintf(os.Stderr, "Job submitted: %s\n", *job.Id)
 
 	// If wait flag is set, wait for completion and get output
 	if *wait {
@@ -84,7 +84,7 @@ func runSubmit(args []string) error {
 			return fmt.Errorf("job failed")
 		}
 
-		fmt.Printf("Job completed successfully\n")
+		fmt.Fprintf(os.Stderr, "Job completed successfully\n")
 
 		// Get output
 		outputResp, err := client.GetJobOutput(ctx, *job.Id)

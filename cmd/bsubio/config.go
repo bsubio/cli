@@ -117,7 +117,7 @@ func runConfig(args []string) error {
 	}
 
 	configPath, _ := getConfigPath()
-	fmt.Printf("Configuration saved to %s\n", configPath)
+	fmt.Fprintf(os.Stderr, "Configuration saved to %s\n", configPath)
 
 	return nil
 }
