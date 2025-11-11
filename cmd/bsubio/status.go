@@ -62,9 +62,6 @@ func runStatus(args []string) error {
 	job := resp.JSON200.Data
 
 	// Display job details
-	fmt.Println("Job Details:")
-	fmt.Println("--------------------------------------------------------------------------------")
-
 	if job.Id != nil {
 		fmt.Printf("ID:          %s\n", *job.Id)
 	}

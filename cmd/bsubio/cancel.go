@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/bsubio/bsubio-go"
 	"github.com/google/uuid"
@@ -72,12 +73,12 @@ func runCancel(args []string) error {
 			if job.Status != nil && (*job.Status == "pending" || *job.Status == "claimed") {
 				cancelResp, err := client.CancelJobWithResponse(ctx, *job.Id)
 				if err != nil {
-					fmt.Printf("Failed to cancel job %s: %v\n", *job.Id, err)
+					fmt.Fprintf(os.Stderr, "Failed to cancel job %s: %v\n", *job.Id, err)
 					continue
 				}
 
 				if cancelResp.StatusCode() != 200 {
-					fmt.Printf("Failed to cancel job %s: HTTP %d\n", *job.Id, cancelResp.StatusCode())
+					fmt.Fprintf(os.Stderr, "Failed to cancel job %s: HTTP %d\n", *job.Id, cancelResp.StatusCode())
 					continue
 				}
 

@@ -90,8 +90,8 @@ COMMANDS:
 EXAMPLES:
     bsubio register
     bsubio config
-    bsubio submit data.json json_format
-    bsubio submit -w -o result.txt input.txt passthru
+    bsubio submit pdf/extract simple.pdf
+    bsubio submit -w -o result.txt passthru input.txt
     bsubio wait -v job_abc123
     bsubio cat job_abc123
     bsubio logs job_abc123

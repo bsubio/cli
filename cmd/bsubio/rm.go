@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/bsubio/bsubio-go"
 	"github.com/google/uuid"
@@ -71,12 +72,12 @@ func runRm(args []string) error {
 		for _, job := range jobs {
 			deleteResp, err := client.DeleteJobWithResponse(ctx, *job.Id)
 			if err != nil {
-				fmt.Printf("Failed to delete job %s: %v\n", job.Id.String(), err)
+				fmt.Fprintf(os.Stderr, "Failed to delete job %s: %v\n", job.Id.String(), err)
 				continue
 			}
 
 			if deleteResp.StatusCode() != 200 && deleteResp.StatusCode() != 204 {
-				fmt.Printf("Failed to delete job %s: HTTP %d\n", job.Id.String(), deleteResp.StatusCode())
+				fmt.Fprintf(os.Stderr, "Failed to delete job %s: HTTP %d\n", job.Id.String(), deleteResp.StatusCode())
 				continue
 			}
 

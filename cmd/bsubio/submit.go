@@ -61,7 +61,7 @@ func runSubmit(args []string) error {
 	ctx := getContext()
 
 	// Submit job
-	fmt.Printf("Submitting job...\n")
+	fmt.Fprintf(os.Stderr, "Submitting job...\n")
 	job, err := client.CreateAndSubmitJobFromFile(ctx, jobType, inputFile)
 	if err != nil {
 		return fmt.Errorf("failed to submit job: %w", err)
@@ -71,7 +71,7 @@ func runSubmit(args []string) error {
 
 	// If wait flag is set, wait for completion and get output
 	if *wait {
-		fmt.Printf("Waiting for job to complete...\n")
+		fmt.Fprintf(os.Stderr, "Waiting for job to complete...\n")
 		finishedJob, err := client.WaitForJob(ctx, *job.Id)
 		if err != nil {
 			return fmt.Errorf("failed to wait for job: %w", err)
@@ -109,7 +109,7 @@ func runSubmit(args []string) error {
 				return fmt.Errorf("failed to write output file: %w", err)
 			}
 
-			fmt.Printf("Output saved to %s\n", *outputFile)
+			fmt.Fprintf(os.Stderr, "Output saved to %s\n", *outputFile)
 		} else {
 			if _, err := os.Stdout.ReadFrom(outputResp.Body); err != nil {
 				return fmt.Errorf("failed to write output: %w", err)

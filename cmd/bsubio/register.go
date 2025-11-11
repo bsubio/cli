@@ -58,16 +58,16 @@ func runRegister(args []string) error {
 	}
 
 	if *verbose || *debug {
-		fmt.Printf("Using base URL: %s\n", baseURL)
-		fmt.Printf("Hostname: %s\n", hostname)
+		fmt.Fprintf(os.Stderr, "Using base URL: %s\n", baseURL)
+		fmt.Fprintf(os.Stderr, "Hostname: %s\n", hostname)
 	}
 
-	fmt.Println("Registering with bsub.io using GitHub authentication...")
-	fmt.Println()
+	fmt.Fprintln(os.Stderr, "Registering with bsub.io using GitHub authentication...")
+	fmt.Fprintln(os.Stderr)
 
 	// Step 1: Request device code
 	if *verbose || *debug {
-		fmt.Printf("Requesting device code from %s/v1/auth/device/code\n", baseURL)
+		fmt.Fprintf(os.Stderr, "Requesting device code from %s/v1/auth/device/code\n", baseURL)
 	}
 	deviceCode, userCode, verificationURI, expiresIn, interval, err := requestDeviceCode(baseURL, hostname, *debug)
 	if err != nil {
@@ -75,28 +75,28 @@ func runRegister(args []string) error {
 	}
 
 	if *debug {
-		fmt.Printf("Device code received (expires in %d seconds, poll interval: %d seconds)\n", expiresIn, interval)
+		fmt.Fprintf(os.Stderr, "Device code received (expires in %d seconds, poll interval: %d seconds)\n", expiresIn, interval)
 	}
 
 	// Step 2: Display code and prompt user
-	fmt.Printf("! First copy your one-time code: %s\n", userCode)
-	fmt.Printf("Press Enter to open %s in your browser...", verificationURI)
+	fmt.Fprintf(os.Stderr, "! First copy your one-time code: %s\n", userCode)
+	fmt.Fprintf(os.Stderr, "Press Enter to open %s in your browser...", verificationURI)
 
 	// Wait for user to press Enter
 	fmt.Scanln()
 
 	// Open browser
 	if *verbose || *debug {
-		fmt.Printf("\nOpening browser to: %s\n", verificationURI)
+		fmt.Fprintf(os.Stderr, "\nOpening browser to: %s\n", verificationURI)
 	}
 	if err := openBrowser(verificationURI); err != nil {
-		fmt.Printf("\nCould not open browser automatically. Please visit the URL above manually.\n")
+		fmt.Fprintf(os.Stderr, "\nCould not open browser automatically. Please visit the URL above manually.\n")
 		if *debug {
-			fmt.Printf("Browser error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Browser error: %v\n", err)
 		}
 	}
 
-	fmt.Println("Waiting for authorization...")
+	fmt.Fprintln(os.Stderr, "Waiting for authorization...")
 
 	// Step 3: Poll for authorization
 	apiKey, userInfo, err := pollForAuthorization(baseURL, deviceCode, userCode, interval, expiresIn, *verbose, *debug)
@@ -191,8 +191,8 @@ func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCo
 	}
 
 	if debug {
-		fmt.Printf("POST %s\n", endpoint)
-		fmt.Printf("Request body: %s\n", string(jsonData))
+		fmt.Fprintf(os.Stderr, "POST %s\n", endpoint)
+		fmt.Fprintf(os.Stderr, "Request body: %s\n", string(jsonData))
 	}
 
 	client := newHTTPClient()
@@ -209,12 +209,12 @@ func requestDeviceCode(baseURL, hostname string, debug bool) (deviceCode, userCo
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil && debug {
-			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
 		}
 	}()
 
 	if debug {
-		fmt.Printf("Response status: %d\n", resp.StatusCode)
+		fmt.Fprintf(os.Stderr, "Response status: %d\n", resp.StatusCode)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -249,7 +249,7 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 	client := newHTTPClient()
 
 	if debug {
-		fmt.Printf("Polling %s every %d seconds until %s\n", endpoint, interval, deadline.Format(time.RFC3339))
+		fmt.Fprintf(os.Stderr, "Polling %s every %d seconds until %s\n", endpoint, interval, deadline.Format(time.RFC3339))
 	}
 
 	for {
@@ -268,7 +268,7 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 		}
 
 		if debug {
-			fmt.Printf("\nPOST %s\n", endpoint)
+			fmt.Fprintf(os.Stderr, "\nPOST %s\n", endpoint)
 		}
 
 		req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
@@ -284,14 +284,14 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 
 		body, err := io.ReadAll(resp.Body)
 		if closeErr := resp.Body.Close(); closeErr != nil && debug {
-			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", closeErr)
 		}
 		if err != nil {
 			return "", nil, err
 		}
 
 		if debug {
-			fmt.Printf("Response status: %d\n", resp.StatusCode)
+			fmt.Fprintf(os.Stderr, "Response status: %d\n", resp.StatusCode)
 		}
 
 		// Handle different response status codes
@@ -326,7 +326,7 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 
 		case http.StatusAccepted:
 			// Still pending, continue polling
-			fmt.Print(".")
+			fmt.Fprint(os.Stderr, ".")
 
 		case http.StatusTooManyRequests:
 			// Slow down
@@ -335,11 +335,11 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 			}
 			if err := json.Unmarshal(body, &response); err == nil && response.Interval > 0 {
 				if debug {
-					fmt.Printf("\nRate limited, increasing poll interval to %d seconds\n", response.Interval)
+					fmt.Fprintf(os.Stderr, "\nRate limited, increasing poll interval to %d seconds\n", response.Interval)
 				}
 				pollInterval = time.Duration(response.Interval) * time.Second
 			}
-			fmt.Print(".")
+			fmt.Fprint(os.Stderr, ".")
 
 		case http.StatusGone:
 			// Code expired

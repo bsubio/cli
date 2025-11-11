@@ -71,7 +71,7 @@ func runCat(args []string) error {
 	// If job is not completed and wait is not set, return helpful error
 	if *job.Status != "finished" && *job.Status != "failed" {
 		if *wait {
-			fmt.Printf("Job is %s, waiting for completion...\n", *job.Status)
+			fmt.Fprintf(os.Stderr, "Job is %s, waiting for completion...\n", *job.Status)
 			finishedJob, err := client.WaitForJob(ctx, jobUUID)
 			if err != nil {
 				return fmt.Errorf("failed to wait for job: %w", err)
