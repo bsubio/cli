@@ -5,93 +5,79 @@ Welcome to bsubio! This guide will help you get started quickly.
 ## Setup
 
 1. Configure your API key:
-```
-bsubio config
-```
+
+    bsubio config
 
 2. List available job types:
-```
-bsubio types
-```
+
+    bsubio types
 
 ## Basic Workflow
 
 ### Submit a Job
 
 Submit a job for processing:
-```
-bsubio submit input.json json_format
-```
+
+    bsubio submit pdf/extract Simple.pdf
 
 You'll receive a job ID like `job_abc123`.
 
 ### Check Job Status
 
 Monitor your job:
-```
-bsubio status job_abc123
-```
+
+    bsubio status job_abc123
 
 ### Wait for Completion
 
 Wait for the job to finish:
-```
-bsubio wait job_abc123
-```
+
+    bsubio wait job_abc123
 
 ### Get Results
 
 Retrieve the output:
-```
-bsubio cat job_abc123
-```
+
+    bsubio cat job_abc123
 
 Or check the logs:
-```
-bsubio logs job_abc123
-```
+
+    bsubio logs job_abc123
 
 ## Quick Submit and Wait
 
 Submit a job and automatically wait for results:
-```
-bsubio submit -w input.json json_format
-```
+
+    bsubio submit -w pdf/extract Simple.pdf
 
 Save output to a file:
-```
-bsubio submit -w -o output.json input.json json_format
-```
+
+    bsubio submit -w -o output.json pdf/extract Simple.pdf
 
 ## Managing Jobs
 
 List recent jobs:
-```
-bsubio jobs
-```
+
+    bsubio jobs
 
 Cancel a job:
-```
-bsubio cancel job_abc123
-```
+
+    bsubio cancel job_abc123
 
 Delete a job:
-```
-bsubio rm job_abc123
-```
+
+    bsubio rm job_abc123
 
 ## Getting Help
 
 View help for any command:
-```
-bsubio help <command>
-```
+
+    bsubio help <command>
 
 For example:
-```
-bsubio help submit
-bsubio help wait
-```
+
+    bsubio help submit
+    bsubio help wait
 
 ## Next Steps
 
