@@ -54,8 +54,8 @@ jobs:
             PATCH=0
           fi
 
-          # Get commits since last tag
-          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s" --no-merges)
+          # Get commits since last tag (include merges to capture PR titles)
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s")
 
           # Check for version bump indicators
           BREAKING=$(echo "$COMMITS" | grep -i "BREAKING CHANGE" || true)
