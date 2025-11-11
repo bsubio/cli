@@ -54,13 +54,21 @@ jobs:
             PATCH=0
           fi
 
-          # Get commits since last tag (include merges to capture PR titles)
-          COMMITS=$(git log ${LATEST_TAG}..HEAD --pretty=format:"%s")
+          # Get commits since last tag (first-parent captures PR titles from merges)
+          COMMITS=$(git log ${LATEST_TAG}..HEAD --first-parent --pretty=format:"%s")
+
+          echo "=== Commits since ${LATEST_TAG} ==="
+          echo "$COMMITS"
+          echo "=== End commits ==="
 
           # Check for version bump indicators
           BREAKING=$(echo "$COMMITS" | grep -i "BREAKING CHANGE" || true)
           FEAT=$(echo "$COMMITS" | grep -iE "^feat(\(|:)" || true)
           FIX=$(echo "$COMMITS" | grep -iE "^fix(\(|:)" || true)
+
+          echo "BREAKING matches: '$BREAKING'"
+          echo "FEAT matches: '$FEAT'"
+          echo "FIX matches: '$FIX'"
 
           # Determine version bump
           if [ -n "$BREAKING" ]; then
