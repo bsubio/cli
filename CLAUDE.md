@@ -40,7 +40,8 @@ Use architect agent to review (architect-reviewer.md).
 Use cli-developer.md for CLI changes review.
 Use code-reviewer.md to review code.
 Repo follows Conventional Commits.
-PR title should start with "Fix:" or "Feat;".
+PR title should start with "Fix:" or "Feat:".
+Don't use goto's unless some mutex/double-nested loops are involved.
 
 # Tooling
 
