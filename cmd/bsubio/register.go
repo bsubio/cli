@@ -132,7 +132,16 @@ func openBrowser(urlStr string) error {
 		return fmt.Errorf("verification URL must use HTTPS")
 	}
 
-	if !strings.HasSuffix(parsed.Host, ".bsub.io") && parsed.Host != "bsub.io" {
+	// Allow bsub.io domains and github.com for OAuth flow
+	allowedHosts := []string{"bsub.io", "github.com"}
+	isAllowed := false
+	for _, host := range allowedHosts {
+		if parsed.Host == host || strings.HasSuffix(parsed.Host, "."+host) {
+			isAllowed = true
+			break
+		}
+	}
+	if !isAllowed {
 		return fmt.Errorf("unexpected verification host: %s", parsed.Host)
 	}
 
