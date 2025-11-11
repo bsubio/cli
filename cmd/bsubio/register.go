@@ -133,9 +133,8 @@ func openBrowser(urlStr string) error {
 	}
 
 	// Allow bsub.io domains and github.com for OAuth flow
-	allowedHosts := []string{"bsub.io", "github.com"}
 	isAllowed := false
-	for _, host := range allowedHosts {
+	for _, host := range []string{"bsub.io", "github.com"} {
 		if parsed.Host == host || strings.HasSuffix(parsed.Host, "."+host) {
 			isAllowed = true
 			break
