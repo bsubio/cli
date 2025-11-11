@@ -82,12 +82,12 @@ func runCancel(args []string) error {
 					continue
 				}
 
-				fmt.Printf("Canceled job: %s\n", *job.Id)
+				fmt.Fprintf(os.Stderr, "Canceled job: %s\n", *job.Id)
 				canceledCount++
 			}
 		}
 
-		fmt.Printf("Canceled %d job(s)\n", canceledCount)
+		fmt.Fprintf(os.Stderr, "Canceled %d job(s)\n", canceledCount)
 	} else {
 		// Cancel single job
 		jobUUID, err := uuid.Parse(jobID)
@@ -103,7 +103,7 @@ func runCancel(args []string) error {
 			return fmt.Errorf("failed to cancel job: HTTP %d", resp.StatusCode())
 		}
 
-		fmt.Printf("Job canceled: %s\n", jobID)
+		fmt.Fprintf(os.Stderr, "Job canceled: %s\n", jobID)
 	}
 
 	return nil

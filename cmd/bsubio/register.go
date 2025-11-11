@@ -104,7 +104,7 @@ func runRegister(args []string) error {
 		return fmt.Errorf("\nauthorization failed: %w", err)
 	}
 
-	fmt.Println("✓ Authentication complete.")
+	fmt.Fprintln(os.Stderr, "✓ Authentication complete.")
 
 	// Step 4: Save configuration
 	config := &Config{
@@ -116,7 +116,7 @@ func runRegister(args []string) error {
 		return fmt.Errorf("failed to save configuration: %w", err)
 	}
 
-	fmt.Printf("✓ Logged in as %s %s (%s)\n", userInfo.FirstName, userInfo.LastName, userInfo.Email)
+	fmt.Fprintf(os.Stderr, "✓ Logged in as %s %s (%s)\n", userInfo.FirstName, userInfo.LastName, userInfo.Email)
 
 	return nil
 }
@@ -319,7 +319,7 @@ func pollForAuthorization(baseURL, deviceCode, userCode string, interval, expire
 					LastName:  response.User.LastName,
 				}
 				if verbose || debug {
-					fmt.Printf("\nAuthorization successful for %s\n", userInfo.Email)
+					fmt.Fprintf(os.Stderr, "\nAuthorization successful for %s\n", userInfo.Email)
 				}
 				return response.APIKey, userInfo, nil
 			}
