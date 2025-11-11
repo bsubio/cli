@@ -29,6 +29,9 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
+      - name: Quick build first
+        run: make
+
       - name: Run make check (fmt, vet, lint, test)
         run: make check
 
