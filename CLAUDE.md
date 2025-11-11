@@ -31,12 +31,14 @@ Don't create any random summary files or new made-up docs.
 
 # Review
 
+Skip "Good" and "Positive" stuff.
+Try to give crisp, short, review. Save words.
+Give only ONE best suggestion.
 Use golang-pro.md as golang agent reviewer.
 Use API designer (api-designer.md) agent for API design.
 Use architect agent to review (architect-reviewer.md).
 Use cli-developer.md for CLI changes review.
 Use code-reviewer.md to review code.
-
 Repo follows Conventional Commits.
 PR title should start with "Fix:" or "Feat;".
 
