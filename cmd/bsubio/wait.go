@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,7 +55,7 @@ func runWait(args []string) error {
 
 	// Poll for job completion
 	if *verbose {
-		fmt.Printf("Waiting for job %s to complete (polling every %d seconds)...\n", jobID, *interval)
+		fmt.Fprintf(os.Stderr, "Waiting for job %s to complete (polling every %d seconds)...\n", jobID, *interval)
 	}
 
 	for {
