@@ -11,5 +11,6 @@ require (
 require (
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/oapi-codegen/runtime v1.1.2 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 )
