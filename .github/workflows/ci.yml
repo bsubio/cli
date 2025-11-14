@@ -29,10 +29,10 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
-#      - name: Pick the latest bsub.io SDK code
-#        run: |
-#          go get -u github.com/bsubio/bsubio-go@main
-#          go mod tidy
+      - name: Pick the latest bsub.io SDK code
+        run: |
+          go get -u github.com/bsubio/bsubio-go
+          go mod tidy
 
       - name: Quick build first
         run: make
