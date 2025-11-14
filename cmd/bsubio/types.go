@@ -4,6 +4,13 @@ import (
 	"fmt"
 )
 
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
 func runTypes(args []string) error {
 	// Create client
 	client, err := createClient()
@@ -38,32 +45,24 @@ func runTypes(args []string) error {
 	fmt.Println("--------------------------------------------------------------------------------")
 
 	for _, jobType := range types {
-		workerType := ""
-		if jobType.Type != nil {
-			workerType = *jobType.Type
-		}
+		workerType := derefString(jobType.Type)
+		description := derefString(jobType.Description)
 
-		description := ""
-		if jobType.Description != nil {
-			description = *jobType.Description
-		}
-
-		// Get MIME out value
-		mimeOut := ""
+		mimeOuts := []string{""}
 		if jobType.Output != nil && jobType.Output.MimeOut != nil {
-			mimeOut = *jobType.Output.MimeOut
+			mimeOuts = *jobType.Output.MimeOut
 		}
 
-		// Print a row for each MIME in value
+		mimeIns := []string{""}
 		if jobType.Input != nil && jobType.Input.MimeIn != nil {
-			for _, mimeIn := range *jobType.Input.MimeIn {
+			mimeIns = *jobType.Input.MimeIn
+		}
+
+		for _, mimeIn := range mimeIns {
+			for _, mimeOut := range mimeOuts {
 				fmt.Printf("%-20s %-20s %-20s %s\n", workerType, mimeIn, mimeOut, description)
 			}
-			continue
 		}
-
-		// If no MIME in values, print one row
-		fmt.Printf("%-20s %-20s %-20s %s\n", workerType, "", mimeOut, description)
 	}
 
 	return nil
