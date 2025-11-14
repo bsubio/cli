@@ -79,7 +79,16 @@ func runJobs(args []string) error {
 		return nil
 	}
 
-	fmt.Printf("%-40s %-12s %-15s %s\n", "JOB ID", "TYPE", "STATUS", "CREATED AT")
+	// Find the longest type string for proper alignment
+	maxTypeLen := len("TYPE")
+	for _, job := range jobs {
+		if job.Type != nil && len(*job.Type) > maxTypeLen {
+			maxTypeLen = len(*job.Type)
+		}
+	}
+
+	// Print header with dynamic TYPE column width
+	fmt.Printf("%-40s %-*s %-15s %s\n", "JOB ID", maxTypeLen, "TYPE", "STATUS", "CREATED AT")
 	fmt.Println("--------------------------------------------------------------------------------")
 
 	for _, job := range jobs {
@@ -103,7 +112,7 @@ func runJobs(args []string) error {
 			createdAt = job.CreatedAt.Format("2006-01-02 15:04")
 		}
 
-		fmt.Printf("%-40s %-12s %-15s %s\n", jobID, jobType, status, createdAt)
+		fmt.Printf("%-40s %-*s %-15s %s\n", jobID, maxTypeLen, jobType, status, createdAt)
 	}
 
 	return nil
