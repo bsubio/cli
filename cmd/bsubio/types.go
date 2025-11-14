@@ -48,28 +48,22 @@ func runTypes(args []string) error {
 			description = *jobType.Description
 		}
 
-		// Get MIME in values
-		var mimeInValues []string
-		if jobType.Input != nil && jobType.Input.MimeIn != nil {
-			mimeInValues = *jobType.Input.MimeIn
-		}
-
 		// Get MIME out value
 		mimeOut := ""
 		if jobType.Output != nil && jobType.Output.MimeOut != nil {
 			mimeOut = *jobType.Output.MimeOut
 		}
 
-		// If no MIME in values, print one row
-		if len(mimeInValues) == 0 {
-			fmt.Printf("%-20s %-20s %-20s %s\n", workerType, "", mimeOut, description)
+		// Print a row for each MIME in value
+		if jobType.Input != nil && jobType.Input.MimeIn != nil {
+			for _, mimeIn := range *jobType.Input.MimeIn {
+				fmt.Printf("%-20s %-20s %-20s %s\n", workerType, mimeIn, mimeOut, description)
+			}
 			continue
 		}
 
-		// Print a row for each MIME in value
-		for _, mimeIn := range mimeInValues {
-			fmt.Printf("%-20s %-20s %-20s %s\n", workerType, mimeIn, mimeOut, description)
-		}
+		// If no MIME in values, print one row
+		fmt.Printf("%-20s %-20s %-20s %s\n", workerType, "", mimeOut, description)
 	}
 
 	return nil
