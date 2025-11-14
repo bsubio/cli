@@ -6,6 +6,7 @@ VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
 build:
+	go get -u github.com/bsubio/bsubio-go && go mod tidy
 	mkdir -p bin
 	$(GO) build $(GOFLAGS) -o bin/bsubio ./cmd/bsubio
 
