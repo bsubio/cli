@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 )
 
 func runTypes(args []string) error {
@@ -35,7 +34,7 @@ func runTypes(args []string) error {
 		return nil
 	}
 
-	fmt.Printf("%-20s %-30s %s\n", "Worker Type", "MIME", "Description")
+	fmt.Printf("%-20s %-20s %-20s %s\n", "Worker Type", "MIME in", "MIME out", "Description")
 	fmt.Println("--------------------------------------------------------------------------------")
 
 	for _, jobType := range types {
@@ -44,17 +43,27 @@ func runTypes(args []string) error {
 			workerType = *jobType.Type
 		}
 
-		mime := ""
-		if jobType.Mime != nil && len(*jobType.Mime) > 0 {
-			mime = strings.Join(*jobType.Mime, ", ")
-		}
-
 		description := ""
 		if jobType.Description != nil {
 			description = *jobType.Description
 		}
 
-		fmt.Printf("%-20s %-30s %s\n", workerType, mime, description)
+		// Get MIME out value
+		mimeOut := ""
+		if jobType.Output != nil && jobType.Output.MimeOut != nil {
+			mimeOut = *jobType.Output.MimeOut
+		}
+
+		// Print a row for each MIME in value
+		if jobType.Input != nil && jobType.Input.MimeIn != nil {
+			for _, mimeIn := range *jobType.Input.MimeIn {
+				fmt.Printf("%-20s %-20s %-20s %s\n", workerType, mimeIn, mimeOut, description)
+			}
+			continue
+		}
+
+		// If no MIME in values, print one row
+		fmt.Printf("%-20s %-20s %-20s %s\n", workerType, "", mimeOut, description)
 	}
 
 	return nil

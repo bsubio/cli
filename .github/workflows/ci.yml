@@ -14,6 +14,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,7 +32,7 @@ jobs:
 
 #      - name: Pick the latest bsub.io SDK code
 #        run: |
-#          go get -u github.com/bsubio/bsubio-go@main
+#          go get -u github.com/bsubio/bsubio-go
 #          go mod tidy
 
       - name: Quick build first
