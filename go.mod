@@ -3,7 +3,7 @@ module github.com/bsubio/cli
 go 1.25.0
 
 require (
-	github.com/bsubio/bsubio-go v0.0.0-20251114012344-415f171808d4
+	github.com/bsubio/bsubio-go v0.0.0-20251114014420-b075c19a7a28
 	github.com/google/uuid v1.6.0
 	golang.org/x/term v0.36.0
 )
