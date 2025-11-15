@@ -70,6 +70,11 @@ release:
 
     ### Installation
 
+    #### Windows (Chocolatey)
+    ```powershell
+    choco install bsubio
+    ```
+
     #### Quick Install (Recommended)
     ```bash
     curl -fsSL https://install.bsub.io/ | sh
@@ -86,6 +91,38 @@ release:
     - [GitHub Repository](https://github.com/bsubio/cli)
     - [Documentation](https://docs.bsub.io)
   name_template: "{{.Tag}}"
+
+chocolateys:
+  - name: bsubio
+    ids:
+      - bsubio
+    title: bsubio CLI
+    authors: bsubio
+    project_url: https://bsub.io
+    url_template: "https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    icon_url: https://bsub.io/favicon.ico
+    copyright: 2025 bsubio
+    license_url: https://github.com/bsubio/cli/blob/main/LICENSE
+    require_license_acceptance: false
+    project_source_url: https://github.com/bsubio/cli
+    docs_url: https://app.bsub.io/static/docs/
+    bug_tracker_url: https://github.com/bsubio/cli/issues
+    tags: "cli batch-jobs job-scheduler cloud devops"
+    summary: CLI for easy running heavy duty compute jobs in the cloud
+    description: |
+      bsubio CLI is a command-line tool for running heavy duty batch compute jobs and workflows on the bsubio cloud platform.
+
+      Features:
+      - Submit and manage CPU/GPU batch jobs 
+      - Monitor job status and logs
+      - Manage job types and configurations
+      - Upload and manage job artifacts
+
+      For more information, visit https://www.bsub.io
+    release_notes: "https://github.com/bsubio/cli/releases/tag/{{ .Tag }}"
+    api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
+    source_repo: "https://push.chocolatey.org/"
+    skip_publish: false
 
 # Announce releases (optional - uncomment if needed)
 # announce:
