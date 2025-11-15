@@ -187,6 +187,12 @@ homebrew_casks:
     url:
       template: "https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
       verified: "github.com/bsubio/cli/"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/bsubio"]
+          end
 
 # Announce releases (optional - uncomment if needed)
 # announce:
