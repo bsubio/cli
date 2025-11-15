@@ -78,6 +78,11 @@ release:
 
     ### Installation
 
+    #### macOS (Homebrew)
+    ```bash
+    brew install bsubio/tap/bsubio
+    ```
+
     #### Windows (Chocolatey)
     ```powershell
     choco install bsubio
@@ -131,6 +136,26 @@ release:
 #    api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
 #    source_repo: "https://push.chocolatey.org/"
 #    skip_publish: false
+
+brews:
+  - name: bsubio
+    ids:
+      - default
+    repository:
+      owner: bsubio
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    commit_author:
+      name: bsub.io
+      email: contact@bsub.io
+    homepage: https://bsub.io
+    description: CLI for easy running heavy duty compute jobs in the cloud
+    license: MIT
+    skip_upload: false
+    install: |
+      bin.install "bsubio"
+    test: |
+      system "#{bin}/bsubio", "version"
 
 # Announce releases (optional - uncomment if needed)
 # announce:
