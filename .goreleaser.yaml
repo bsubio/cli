@@ -94,6 +94,8 @@ release:
 
 chocolateys:
   - name: bsubio
+    ids:
+      - bsubio
     title: bsubio CLI
     authors: bsubio
     project_url: https://bsub.io
