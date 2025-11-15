@@ -33,6 +33,26 @@ jobs:
       - name: Run make check
         run: make check
 
+      - name: Install Mono and .NET for Chocolatey
+        run: |
+          sudo apt-get install -y gnupg ca-certificates
+          sudo gpg --homedir /tmp --no-default-keyring --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+          echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/ubuntu stable-focal main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+          sudo apt update && sudo apt install -y \
+            mono-devel dotnet-host-8.0 dotnet-hostfxr-8.0 dotnet-runtime-8.0 dotnet-sdk-8.0
+          (
+            mkdir ~/choco
+            cd ~/choco
+            wget https://labs.koszek.com/chocolatey.v2.6.0-alpha0130.tar.gz
+            tar xzf chocolatey.v2.6.0-alpha0130.tar.gz
+          )
+          (
+            echo "#!/bin/sh"
+            echo 'mono $HOME/choco/choco.exe "$@" --allow-unofficial'
+          ) | sudo tee /usr/local/bin/choco
+          sudo chmod 755 /usr/local/bin/choco
+          choco -v
+
       - name: Get latest tag
         id: get_tag
         run: |
