@@ -57,19 +57,18 @@ sudo mv bin/bsubio /usr/local/bin/
 
 First configure the CLI.
 
-    $ bsubio config
+    $ bsubio register:
 
-The CLI will ask you for the API key.
-You must have account at https://app.bsub.io first, to get it.
-After you register, from "API Keys", click "New Key" and copy & paste the API key to
-the terminal.
+This will give you a way to register for the online account,
+and to obtain an API key.
+It will also automatically give you an account at https://app.bsub.io.
 Configuration is stored in `~/.config/bsubio/config.json` and you can modify it at
 any point in time.
 
-Then you can do dry run:
+Then you can do dry run with a sample command:
 
     $ echo 123 > input.txt
-    $ bsubio submit input.txt passthru
+    $ bsubio submit passthru input.txt
 
 Expected output will be similar to:
 
@@ -90,6 +89,14 @@ The `passthru` is like `cat` in command line: it should read input and print out
 
     bsubio status 019a3256-26b4-7f1f-b1aa-0b45ab7b371d
     bsubio cat 019a3256-26b4-7f1f-b1aa-0b45ab7b371d
+
+More practical example:
+
+    $ bsubio submit -w pdf/extract your.pdf
+
+With OCR:
+
+    $ bsubio submit -w pdf/extract/ocr your.pdf
 
 ## Exit Codes
 
