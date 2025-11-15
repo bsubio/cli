@@ -11,9 +11,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    outputs:
-      should_release: ${{ steps.next_version.outputs.should_release }}
-      new_version: ${{ steps.next_version.outputs.new_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,6 +29,25 @@ jobs:
 
       - name: Run make check
         run: make check
+
+      - name: Install Mono and .NET for Chocolatey
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+          echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/ubuntu stable-focal main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+          sudo apt update && sudo apt install -y \
+            mono-devel dotnet-sdk dotnet-sdk-6.0 \
+            dotnet-host-8.0 dotnet-hostfxr-8.0 dotnet-runtime-8.0 dotnet-sdk-8.0
+          (
+            mkdir ~/choco
+            cd ~/choco
+            wget http://labs.koszek.com/chocolatey.v2.6.0-alpha0130.tar.gz
+            tar xzf chocolatey.v2.6.0-alpha0130.tar.gz
+          )
+          (
+            echo "#!/bin/sh"
+            echo 'mono $HOME/choco/choco.exe "$@" --allow-unofficial'
+          ) | sudo tee /usr/local/bin/choco
+          sudo chmod 755 /usr/local/bin/choco
 
       - name: Get latest tag
         id: get_tag
@@ -133,33 +149,3 @@ jobs:
           NEW_VERSION="${{ steps.next_version.outputs.new_version }}"
           echo "✅ Release $NEW_VERSION created successfully!"
           echo "🔗 https://github.com/${{ github.repository }}/releases/tag/$NEW_VERSION"
-
-  release_win:
-    runs-on: windows-latest
-    needs: release
-    if: needs.release.outputs.should_release == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-
-      - name: Run GoReleaser for Chocolatey
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: ~> v2
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-
-      - name: Chocolatey release summary
-        run: |
-          echo "✅ Chocolatey package published!"
-        shell: powershell
