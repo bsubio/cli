@@ -40,7 +40,7 @@ jobs:
           (
             mkdir ~/choco
             cd ~/choco
-            wget http://labs.koszek.com/chocolatey.v2.6.0-alpha0130.tar.gz
+            wget https://labs.koszek.com/chocolatey.v2.6.0-alpha0130.tar.gz
             tar xzf chocolatey.v2.6.0-alpha0130.tar.gz
           )
           (
