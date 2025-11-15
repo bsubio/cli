@@ -28,6 +28,14 @@ builds:
     flags:
       - -trimpath
 
+archives:
+  - id: default
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}.sha256"
   algorithm: sha256
