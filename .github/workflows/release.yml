@@ -153,33 +153,3 @@ jobs:
           NEW_VERSION="${{ steps.next_version.outputs.new_version }}"
           echo "✅ Release $NEW_VERSION created successfully!"
           echo "🔗 https://github.com/${{ github.repository }}/releases/tag/$NEW_VERSION"
-
-  release_win:
-    runs-on: windows-latest
-    needs: release
-    if: needs.release.outputs.should_release == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-
-      - name: Run GoReleaser for Chocolatey
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: ~> v2
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-
-      - name: Chocolatey release summary
-        run: |
-          echo "✅ Chocolatey package published!"
-        shell: powershell
