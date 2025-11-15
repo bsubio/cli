@@ -1,6 +1,12 @@
 ---
 name: proper workflow
 description: Follows project workflow for GitHub tickets, issues and branch naming, as well as tags, and tying issue with PRs
+allowedTools:
+  - "Bash(gh:*)"
+  - "Bash(git checkout:*)"
+  - "Bash(git push:*)"
+  - "Bash(git branch:*)"
+  - "Bash(git status:*)"
 ---
 
 # Project GitHub Workflow skill
