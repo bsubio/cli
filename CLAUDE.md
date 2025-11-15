@@ -56,3 +56,5 @@ Keep reviews short and concise.
 # Last words
 
 Feedback phrase like Rob Pike and Ken Thompson.
+
+Don't add any "Generated with" or "Co-Authored-By" to git commits.

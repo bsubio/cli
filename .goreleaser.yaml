@@ -78,6 +78,11 @@ release:
 
     ### Installation
 
+    #### macOS (Homebrew)
+    ```bash
+    brew install bsubio/tap/bsubio
+    ```
+
     #### Windows (Chocolatey)
     ```powershell
     choco install bsubio
@@ -100,6 +105,26 @@ release:
     - [Documentation](https://docs.bsub.io)
   name_template: "{{.Tag}}"
 
+brews:
+  - name: bsubio
+    ids:
+      - default
+    repository:
+      owner: bsubio
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    commit_author:
+      name: bsub.io
+      email: contact@bsub.io
+    homepage: https://bsub.io
+    description: CLI for easy running heavy duty compute jobs in the cloud
+    license: MIT
+    skip_upload: false
+    install: |
+      bin.install "bsubio"
+    test: |
+      system "#{bin}/bsubio", "version"
+
 chocolateys:
   - name: bsubio
     ids:
@@ -121,7 +146,7 @@ chocolateys:
       bsubio CLI is a command-line tool for running heavy duty batch compute jobs and workflows on the bsubio cloud platform.
 
       Features:
-      - Submit and manage CPU/GPU batch jobs 
+      - Submit and manage CPU/GPU batch jobs
       - Monitor job status and logs
       - Manage job types and configurations
       - Upload and manage job artifacts
