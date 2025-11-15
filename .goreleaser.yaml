@@ -105,7 +105,7 @@ release:
     - [Documentation](https://docs.bsub.io)
   name_template: "{{.Tag}}"
 
-brews:
+homebrew_casks:
   - name: bsubio
     ids:
       - default
@@ -113,17 +113,18 @@ brews:
       owner: bsubio
       name: homebrew-tap
       token: "{{ .Env.GITHUB_TOKEN }}"
+      branch: main
     commit_author:
       name: bsub.io
       email: contact@bsub.io
     homepage: https://bsub.io
     description: CLI for easy running heavy duty compute jobs in the cloud
-    license: MIT
+    binaries:
+      - bsubio
     skip_upload: false
-    install: |
-      bin.install "bsubio"
-    test: |
-      system "#{bin}/bsubio", "version"
+    url:
+      template: "https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+      verified: "github.com/bsubio/cli/"
 
 chocolateys:
   - name: bsubio
