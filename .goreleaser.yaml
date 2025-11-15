@@ -174,7 +174,7 @@ homebrew_casks:
     repository:
       owner: bsubio
       name: homebrew-tap
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
       branch: main
     commit_author:
       name: bsub.io
