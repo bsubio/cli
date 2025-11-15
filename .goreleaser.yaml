@@ -103,7 +103,7 @@ release:
 chocolateys:
   - name: bsubio
     ids:
-      - bsubio
+      - default
     title: bsubio CLI
     authors: bsubio
     project_url: https://bsub.io
