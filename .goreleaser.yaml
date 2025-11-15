@@ -40,6 +40,20 @@ checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}.sha256"
   algorithm: sha256
 
+nfpms:
+  - id: default
+    package_name: bsubio
+    vendor: bsubio
+    homepage: https://bsub.io
+    maintainer: bsub.io <contact@bsub.io>
+    description: CLI for easy running heavy duty compute jobs in the cloud
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
 changelog:
   disable: false
   use: git
@@ -77,6 +91,22 @@ release:
     ---
 
     ### Installation
+
+    #### Debian/Ubuntu (.deb)
+    ```bash
+    # Download the .deb package for your architecture (amd64 or arm64)
+    ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+    wget https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ProjectName }}_{{ .Version }}_linux_${ARCH}.deb
+    sudo dpkg -i {{ .ProjectName }}_{{ .Version }}_linux_${ARCH}.deb
+    ```
+
+    #### RHEL/CentOS/Fedora (.rpm)
+    ```bash
+    # Download the .rpm package for your architecture (amd64 or arm64)
+    ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+    wget https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ProjectName }}_{{ .Version }}_linux_${ARCH}.rpm
+    sudo rpm -i {{ .ProjectName }}_{{ .Version }}_linux_${ARCH}.rpm
+    ```
 
     #### macOS (Homebrew)
     ```bash
