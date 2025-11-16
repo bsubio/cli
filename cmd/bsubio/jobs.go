@@ -88,8 +88,8 @@ func runJobs(args []string) error {
 	}
 
 	// Print header with dynamic TYPE column width
-	fmt.Printf("%-40s %-*s %-15s %s\n", "JOB ID", maxTypeLen, "TYPE", "STATUS", "CREATED AT")
-	fmt.Println("--------------------------------------------------------------------------------")
+	fmt.Printf("%-40s %-*s %-15s %-17s %-17s %s\n", "JOB ID", maxTypeLen, "TYPE", "STATUS", "CREATED AT", "FINISHED AT", "TOOK (s)")
+	fmt.Println("--------------------------------------------------------------------------------------------------------------------")
 
 	for _, job := range jobs {
 		jobID := ""
@@ -112,7 +112,18 @@ func runJobs(args []string) error {
 			createdAt = job.CreatedAt.Format("2006-01-02 15:04")
 		}
 
-		fmt.Printf("%-40s %-*s %-15s %s\n", jobID, maxTypeLen, jobType, status, createdAt)
+		finishedAt := ""
+		if job.FinishedAt != nil {
+			finishedAt = job.FinishedAt.Format("2006-01-02 15:04")
+		}
+
+		took := ""
+		if job.CreatedAt != nil && job.FinishedAt != nil {
+			duration := job.FinishedAt.Sub(*job.CreatedAt)
+			took = fmt.Sprintf("%.2f", duration.Seconds())
+		}
+
+		fmt.Printf("%-40s %-*s %-15s %-17s %-17s %s\n", jobID, maxTypeLen, jobType, status, createdAt, finishedAt, took)
 	}
 
 	return nil
