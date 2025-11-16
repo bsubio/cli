@@ -14,7 +14,7 @@ allowedTools:
 ## Instructions
 
 This skill instructs how to properly create GitHub issues, branches and pull requests for the project.
-Don't put to main.
+Never commit directly to main.
 Always try to:
 - make issue
 - make branch
