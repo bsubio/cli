@@ -1,13 +1,23 @@
-FROM golang:1.25
+FROM ubuntu:24.04
 
-# Install system dependencies for Chocolatey packaging (needed by release.yml)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gnupg \
     ca-certificates \
     wget \
     curl \
     git \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Go 1.25.4
+RUN wget https://go.dev/dl/go1.25.4.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.25.4.linux-amd64.tar.gz && \
+    rm go1.25.4.linux-amd64.tar.gz
+
+# Set Go environment variables
+ENV GOPATH="/go" \
+    PATH="/usr/local/go/bin:${PATH}:/go/bin"
 
 # Add Mono repository and install Mono + .NET
 RUN gpg --homedir /tmp --no-default-keyring \
@@ -20,13 +30,15 @@ RUN gpg --homedir /tmp --no-default-keyring \
     echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/ubuntu stable-focal main" \
     > /etc/apt/sources.list.d/mono-official-stable.list && \
     apt-get update && \
-    apt-get install -y \
-    mono-devel \
-    dotnet-host-8.0 \
-    dotnet-hostfxr-8.0 \
-    dotnet-runtime-8.0 \
-    dotnet-sdk-8.0 \
-    && rm -rf /var/lib/apt/lists/*
+    apt-get install -y mono-devel && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install .NET 8.0 SDK
+RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
+    chmod +x dotnet-install.sh && \
+    ./dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet && \
+    ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet && \
+    rm dotnet-install.sh
 
 # Install Chocolatey
 RUN mkdir -p /opt/choco && \
@@ -43,8 +55,8 @@ RUN echo '#!/bin/sh\nmono /opt/choco/choco.exe "$@" --allow-unofficial' > /usr/l
 RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
     sh -s -- -b $(go env GOPATH)/bin v2.5.0
 
-# Add Go bin to PATH
-ENV PATH="${PATH}:/go/bin"
+# Create choco lib directory
+RUN mkdir -p /opt/choco/lib
 
 # Verify installations
 RUN go version && \
@@ -54,3 +66,4 @@ RUN go version && \
     dotnet --version
 
 WORKDIR /workspace
+
