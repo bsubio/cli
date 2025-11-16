@@ -112,15 +112,14 @@ func runJobs(args []string) error {
 			createdAt = job.CreatedAt.Format("2006-01-02 15:04")
 		}
 
-		finishedAt := ""
+		finishedAt := "0000-00-00 00:00"
+		took := "0.0"
 		if job.FinishedAt != nil {
 			finishedAt = job.FinishedAt.Format("2006-01-02 15:04")
-		}
-
-		took := ""
-		if job.CreatedAt != nil && job.FinishedAt != nil {
-			duration := job.FinishedAt.Sub(*job.CreatedAt)
-			took = fmt.Sprintf("%.2f", duration.Seconds())
+			if job.CreatedAt != nil {
+				duration := job.FinishedAt.Sub(*job.CreatedAt)
+				took = fmt.Sprintf("%.2f", duration.Seconds())
+			}
 		}
 
 		fmt.Printf("%-40s %-*s %-15s %-17s %-17s %s\n", jobID, maxTypeLen, jobType, status, createdAt, finishedAt, took)
