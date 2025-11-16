@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
 
       - name: Fix Git ownership
-        run: git config --global --add safe.directory /__w/cli/cli
+        run: git config --global --add safe.directory "${{ github.workspace }}"
 
       - name: Quick build first
         run: make
