@@ -34,6 +34,8 @@ jobs:
           images: ghcr.io/${{ github.repository }}/ci
           tags: |
             type=raw,value=latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
