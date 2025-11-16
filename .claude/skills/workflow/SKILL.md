@@ -14,8 +14,13 @@ allowedTools:
 ## Instructions
 
 This skill instructs how to properly create GitHub issues, branches and pull requests for the project.
+Never commit directly to main.
+Always try to:
+- make issue
+- make branch
+- make PR and print its URL.
 
-When asked to create the ticket, feed the issue title and the body to the following command:
+When asked to create the ticket (or issue or todo), feed the issue title and the body to the following command:
 
     gh issue create -b "<body>" --title "<title>"
 
@@ -49,3 +54,4 @@ is the "Feat: " or "Fix: " + explanation of what was done and "(Fixes: #issuenum
 
 being explanation of what we made.
 
+If something isn't possible, ask.
