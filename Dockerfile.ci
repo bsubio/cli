@@ -1,0 +1,53 @@
+FROM golang:1.25
+
+# Install system dependencies for Chocolatey packaging (needed by release.yml)
+RUN apt-get update && apt-get install -y \
+    gnupg \
+    ca-certificates \
+    wget \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add Mono repository and install Mono + .NET
+RUN gpg --homedir /tmp --no-default-keyring \
+    --keyring /usr/share/keyrings/mono-official-archive-keyring.gpg \
+    --keyserver hkp://keyserver.ubuntu.com:80 \
+    --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF && \
+    echo "deb [signed-by=/usr/share/keyrings/mono-official-archive-keyring.gpg] https://download.mono-project.com/repo/ubuntu stable-focal main" \
+    > /etc/apt/sources.list.d/mono-official-stable.list && \
+    apt-get update && \
+    apt-get install -y \
+    mono-devel \
+    dotnet-host-8.0 \
+    dotnet-hostfxr-8.0 \
+    dotnet-runtime-8.0 \
+    dotnet-sdk-8.0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Chocolatey
+RUN mkdir -p /opt/choco && \
+    cd /opt/choco && \
+    wget https://labs.koszek.com/chocolatey.v2.6.0-alpha0130.tar.gz && \
+    tar xzf chocolatey.v2.6.0-alpha0130.tar.gz && \
+    rm chocolatey.v2.6.0-alpha0130.tar.gz
+
+# Create choco wrapper script
+RUN echo '#!/bin/sh\nmono /opt/choco/choco.exe "$@" --allow-unofficial' > /usr/local/bin/choco && \
+    chmod 755 /usr/local/bin/choco
+
+# Install golangci-lint v2.5.0
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+    sh -s -- -b $(go env GOPATH)/bin v2.5.0
+
+# Add Go bin to PATH
+ENV PATH="${PATH}:/go/bin"
+
+# Verify installations
+RUN go version && \
+    golangci-lint version && \
+    choco -v && \
+    mono --version && \
+    dotnet --version
+
+WORKDIR /workspace
