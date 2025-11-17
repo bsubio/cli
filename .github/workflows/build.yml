@@ -7,6 +7,13 @@ on:
     tags-ignore:
       - '**'
   pull_request:
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug output'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -30,6 +37,7 @@ jobs:
           fetch-depth: 0
 
       - name: Debug environment
+        if: inputs.debug != false
         run: |
           echo "=== GitHub Context ==="
           echo "github.workspace: ${{ github.workspace }}"
