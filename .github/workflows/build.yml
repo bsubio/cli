@@ -1,16 +1,26 @@
-name: Release
+name: Build
 
 on:
   push:
     branches:
-      - main
+      - '**'
+    tags-ignore:
+      - '**'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug output'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
   packages: read
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}/ci:latest
@@ -21,15 +31,43 @@ jobs:
       should_release: ${{ steps.next_version.outputs.should_release }}
       new_version: ${{ steps.next_version.outputs.new_version }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Run make check
+      - name: Debug environment
+        run: |
+          echo "=== GitHub Context ==="
+          echo "github.workspace: ${{ github.workspace }}"
+          echo "github.repository: ${{ github.repository }}"
+          echo "github.actor: ${{ github.actor }}"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo ""
+          echo "=== Environment ==="
+          echo "PWD: $(pwd)"
+          echo "HOME: $HOME"
+          echo "USER: $(whoami)"
+          echo "UID: $(id -u)"
+          echo "GID: $(id -g)"
+          echo ""
+          echo "=== Workspace ownership ==="
+          ls -la $(pwd)
+          echo ""
+          echo "=== Git config before fix ==="
+          git config --global --list | grep safe.directory || echo "No safe.directory configured"
+
+      - name: Fix Git ownership
+        run: git config --global --add safe.directory /__w/cli/cli
+
+      - name: Quick build first
+        run: make
+
+      - name: Run make check (fmt, vet, lint, test)
         run: make check
 
       - name: Get latest tag
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: get_tag
         run: |
           git fetch --tags
@@ -38,6 +76,7 @@ jobs:
           echo "Latest tag: $LATEST_TAG"
 
       - name: Determine next version
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: next_version
         run: |
           LATEST_TAG="${{ steps.get_tag.outputs.latest_tag }}"
@@ -98,8 +137,18 @@ jobs:
 
           echo "Version bump: $LATEST_TAG → $NEW_VERSION ($BUMP_TYPE)"
 
+      - name: Build for all platforms (snapshot)
+        if: github.ref != 'refs/heads/main' || github.event_name != 'push'
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: ~> v2
+          args: build --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Create and push tag
-        if: steps.next_version.outputs.should_release == 'true'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.next_version.outputs.should_release == 'true'
         run: |
           NEW_VERSION="${{ steps.next_version.outputs.new_version }}"
           BUMP_TYPE="${{ steps.next_version.outputs.bump_type }}"
@@ -112,8 +161,8 @@ jobs:
 
           echo "Created and pushed tag: $NEW_VERSION"
 
-      - name: Run GoReleaser
-        if: steps.next_version.outputs.should_release == 'true'
+      - name: Run GoReleaser (release)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.next_version.outputs.should_release == 'true'
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
@@ -125,7 +174,7 @@ jobs:
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
 
       - name: Release summary
-        if: steps.next_version.outputs.should_release == 'true'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.next_version.outputs.should_release == 'true'
         run: |
           NEW_VERSION="${{ steps.next_version.outputs.new_version }}"
           echo "✅ Release $NEW_VERSION created successfully!"
