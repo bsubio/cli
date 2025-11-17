@@ -27,7 +27,6 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     outputs:
       should_release: ${{ steps.next_version.outputs.should_release }}
       new_version: ${{ steps.next_version.outputs.new_version }}
@@ -37,7 +36,6 @@ jobs:
           fetch-depth: 0
 
       - name: Debug environment
-        if: inputs.debug != false
         run: |
           echo "=== GitHub Context ==="
           echo "github.workspace: ${{ github.workspace }}"
