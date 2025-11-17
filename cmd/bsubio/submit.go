@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/bsubio/bsubio-go"
 )
 
 func runSubmit(args []string) error {
@@ -15,13 +17,13 @@ func runSubmit(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <type> <input_file>\n\n")
-		fmt.Fprintf(fs.Output(), "Submit a job for processing\n\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio submit [options] <type> <input_file> [input_file2 ...]\n\n")
+		fmt.Fprintf(fs.Output(), "Submit one or more jobs for processing\n\n")
 		fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
 		fmt.Fprintf(fs.Output(), "\nArguments:\n")
 		fmt.Fprintf(fs.Output(), "  type          Job type (e.g., pdf_extract)\n")
-		fmt.Fprintf(fs.Output(), "  input_file    Path to the input file\n")
+		fmt.Fprintf(fs.Output(), "  input_file    Path to input file(s) (can specify multiple)\n")
 	}
 
 	// Parse flags
@@ -31,25 +33,30 @@ func runSubmit(args []string) error {
 
 	// Get remaining arguments
 	remainingArgs := fs.Args()
-	if len(remainingArgs) != 2 {
+	if len(remainingArgs) < 2 {
 		fs.Usage()
-		return fmt.Errorf("expected 2 arguments, got %d", len(remainingArgs))
+		return fmt.Errorf("expected at least 2 arguments, got %d", len(remainingArgs))
 	}
 
 	jobType := remainingArgs[0]
-	inputFile := remainingArgs[1]
+	inputFiles := remainingArgs[1:]
 
-	// Validate that output file is only used with wait
+	// Validate that output file is only used with wait and single file
 	if *outputFile != "" && !*wait {
 		return fmt.Errorf("-o flag requires -w flag")
 	}
+	if *outputFile != "" && len(inputFiles) > 1 {
+		return fmt.Errorf("-o flag cannot be used with multiple input files")
+	}
 
-	// Check if input file exists
-	if _, err := os.Stat(inputFile); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("input file not found: %s", inputFile)
+	// Check if all input files exist
+	for _, inputFile := range inputFiles {
+		if _, err := os.Stat(inputFile); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("input file not found: %s", inputFile)
+			}
+			return fmt.Errorf("failed to access input file: %w", err)
 		}
-		return fmt.Errorf("failed to access input file: %w", err)
 	}
 
 	// Create client
@@ -60,59 +67,70 @@ func runSubmit(args []string) error {
 
 	ctx := getContext()
 
-	// Submit job
-	fmt.Fprintf(os.Stderr, "Submitting job...\n")
-	job, err := client.CreateAndSubmitJobFromFile(ctx, jobType, inputFile)
-	if err != nil {
-		return fmt.Errorf("failed to submit job: %w", err)
+	// Submit jobs for all input files
+	jobIDs := make([]bsubio.JobId, 0, len(inputFiles))
+	for _, inputFile := range inputFiles {
+		fmt.Fprintf(os.Stderr, "Submitting job for %s...\n", inputFile)
+		job, err := client.CreateAndSubmitJobFromFile(ctx, jobType, inputFile)
+		if err != nil {
+			return fmt.Errorf("failed to submit job for %s: %w", inputFile, err)
+		}
+		fmt.Fprintf(os.Stderr, "Job submitted: %s\n", job.Id.String())
+		jobIDs = append(jobIDs, *job.Id)
 	}
 
-	fmt.Fprintf(os.Stderr, "Job submitted: %s\n", *job.Id)
-
-	// If wait flag is set, wait for completion and get output
+	// If wait flag is set, wait for all jobs and get outputs
 	if *wait {
-		fmt.Fprintf(os.Stderr, "Waiting for job to complete...\n")
-		finishedJob, err := client.WaitForJob(ctx, *job.Id)
-		if err != nil {
-			return fmt.Errorf("failed to wait for job: %w", err)
-		}
-
-		if finishedJob.Status != nil && *finishedJob.Status == "failed" {
-			if finishedJob.ErrorMessage != nil {
-				return fmt.Errorf("job failed: %s", *finishedJob.ErrorMessage)
-			}
-			return fmt.Errorf("job failed")
-		}
-
-		fmt.Fprintf(os.Stderr, "Job completed successfully\n")
-
-		// Get output
-		outputResp, err := client.GetJobOutput(ctx, *job.Id)
-		if err != nil {
-			return fmt.Errorf("failed to get job output: %w", err)
-		}
-		defer func() {
-			_ = outputResp.Body.Close()
-		}()
-
-		// Write output to file or stdout
-		if *outputFile != "" {
-			file, err := os.Create(*outputFile)
+		for i, jobID := range jobIDs {
+			fmt.Fprintf(os.Stderr, "Waiting for job %s to complete...\n", jobID.String())
+			finishedJob, err := client.WaitForJob(ctx, jobID)
 			if err != nil {
-				return fmt.Errorf("failed to create output file: %w", err)
+				return fmt.Errorf("failed to wait for job %s: %w", jobID.String(), err)
 			}
-			defer func() {
+
+			if finishedJob.Status != nil && *finishedJob.Status == "failed" {
+				if finishedJob.ErrorMessage != nil {
+					return fmt.Errorf("job %s failed: %s", jobID.String(), *finishedJob.ErrorMessage)
+				}
+				return fmt.Errorf("job %s failed", jobID.String())
+			}
+
+			fmt.Fprintf(os.Stderr, "Job %s completed successfully\n", jobID.String())
+
+			// Get output
+			outputResp, err := client.GetJobOutput(ctx, jobID)
+			if err != nil {
+				return fmt.Errorf("failed to get job output for %s: %w", jobID.String(), err)
+			}
+
+			// Write output to file or stdout
+			if *outputFile != "" {
+				file, err := os.Create(*outputFile)
+				if err != nil {
+					_ = outputResp.Body.Close()
+					return fmt.Errorf("failed to create output file: %w", err)
+				}
+
+				if _, err := file.ReadFrom(outputResp.Body); err != nil {
+					_ = file.Close()
+					_ = outputResp.Body.Close()
+					return fmt.Errorf("failed to write output file: %w", err)
+				}
+
 				_ = file.Close()
-			}()
+				_ = outputResp.Body.Close()
+				fmt.Fprintf(os.Stderr, "Output saved to %s\n", *outputFile)
+			} else {
+				if _, err := os.Stdout.ReadFrom(outputResp.Body); err != nil {
+					_ = outputResp.Body.Close()
+					return fmt.Errorf("failed to write output: %w", err)
+				}
+				_ = outputResp.Body.Close()
 
-			if _, err := file.ReadFrom(outputResp.Body); err != nil {
-				return fmt.Errorf("failed to write output file: %w", err)
-			}
-
-			fmt.Fprintf(os.Stderr, "Output saved to %s\n", *outputFile)
-		} else {
-			if _, err := os.Stdout.ReadFrom(outputResp.Body); err != nil {
-				return fmt.Errorf("failed to write output: %w", err)
+				// Add separator between outputs if there are multiple files
+				if len(inputFiles) > 1 && i < len(jobIDs)-1 {
+					fmt.Println()
+				}
 			}
 		}
 	}
