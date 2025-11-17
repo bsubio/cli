@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/bsubio/bsubio-go"
 )
 
 func runSubmit(args []string) error {
@@ -66,39 +68,39 @@ func runSubmit(args []string) error {
 	ctx := getContext()
 
 	// Submit jobs for all input files
-	jobIDs := make([]string, 0, len(inputFiles))
+	jobIDs := make([]bsubio.JobId, 0, len(inputFiles))
 	for _, inputFile := range inputFiles {
 		fmt.Fprintf(os.Stderr, "Submitting job for %s...\n", inputFile)
 		job, err := client.CreateAndSubmitJobFromFile(ctx, jobType, inputFile)
 		if err != nil {
 			return fmt.Errorf("failed to submit job for %s: %w", inputFile, err)
 		}
-		fmt.Fprintf(os.Stderr, "Job submitted: %s\n", *job.Id)
+		fmt.Fprintf(os.Stderr, "Job submitted: %s\n", job.Id.String())
 		jobIDs = append(jobIDs, *job.Id)
 	}
 
 	// If wait flag is set, wait for all jobs and get outputs
 	if *wait {
 		for i, jobID := range jobIDs {
-			fmt.Fprintf(os.Stderr, "Waiting for job %s to complete...\n", jobID)
+			fmt.Fprintf(os.Stderr, "Waiting for job %s to complete...\n", jobID.String())
 			finishedJob, err := client.WaitForJob(ctx, jobID)
 			if err != nil {
-				return fmt.Errorf("failed to wait for job %s: %w", jobID, err)
+				return fmt.Errorf("failed to wait for job %s: %w", jobID.String(), err)
 			}
 
 			if finishedJob.Status != nil && *finishedJob.Status == "failed" {
 				if finishedJob.ErrorMessage != nil {
-					return fmt.Errorf("job %s failed: %s", jobID, *finishedJob.ErrorMessage)
+					return fmt.Errorf("job %s failed: %s", jobID.String(), *finishedJob.ErrorMessage)
 				}
-				return fmt.Errorf("job %s failed", jobID)
+				return fmt.Errorf("job %s failed", jobID.String())
 			}
 
-			fmt.Fprintf(os.Stderr, "Job %s completed successfully\n", jobID)
+			fmt.Fprintf(os.Stderr, "Job %s completed successfully\n", jobID.String())
 
 			// Get output
 			outputResp, err := client.GetJobOutput(ctx, jobID)
 			if err != nil {
-				return fmt.Errorf("failed to get job output for %s: %w", jobID, err)
+				return fmt.Errorf("failed to get job output for %s: %w", jobID.String(), err)
 			}
 
 			// Write output to file or stdout
