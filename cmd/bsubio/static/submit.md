@@ -5,7 +5,7 @@ Submit a job for processing
 ## Usage
 
 ```
-bsubio submit [options] <type> <input_file> [<input_file2> ...]
+bsubio submit [options] <type> <input_file>
 ```
 
 ## Options
