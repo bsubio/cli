@@ -35,7 +35,6 @@ vet:
 
 lint:
 	which golangci-lint > /dev/null || (echo "golangci-lint not found. Install with: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest" && exit 1)
-	# Disable VCS stamping to prevent "exit status 128" errors in containerized builds
 	GOFLAGS="-buildvcs=false" golangci-lint run ./...
 
 test:
