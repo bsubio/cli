@@ -78,6 +78,7 @@ jobs:
       - name: Determine next version
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: next_version
+        shell: bash
         run: |
           LATEST_TAG="${{ steps.get_tag.outputs.latest_tag }}"
 
