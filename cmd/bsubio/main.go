@@ -70,7 +70,7 @@ USAGE:
 COMMANDS:
     register                    Register with bsub.io using GitHub
     config                      Configure API key manually
-    submit [-o <file>] [-w] <input_file> <type>
+    submit [-o <file>] [-w] <type> <input_file>
                                 Submit a job for processing
     wait [-v] [-t <seconds>] <jobid>
                                 Wait for a job to complete
