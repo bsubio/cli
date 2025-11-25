@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/google/uuid"
@@ -98,7 +100,19 @@ func runCat(args []string) error {
 	}()
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("failed to get job output: HTTP %d", resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to get job output: HTTP %d", resp.StatusCode)
+		}
+
+		var errorResp struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(body, &errorResp); err == nil && errorResp.Error != "" {
+			return fmt.Errorf("failed to get job output: %s", errorResp.Error)
+		}
+
+		return fmt.Errorf("failed to get job output: HTTP %d: %s", resp.StatusCode, string(body))
 	}
 
 	// Write output to stdout
