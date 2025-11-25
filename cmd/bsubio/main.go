@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -10,9 +11,22 @@ import (
 
 var version = "0.1.0"
 
+type ExitError struct {
+	Message string
+	Code    int
+}
+
+func (e *ExitError) Error() string {
+	return e.Message
+}
+
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		var exitErr *ExitError
+		if errors.As(err, &exitErr) {
+			os.Exit(exitErr.Code)
+		}
 		os.Exit(1)
 	}
 }

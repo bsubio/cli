@@ -153,7 +153,10 @@ func runSubmit(args []string) error {
 	for _, inputFile := range inputFiles {
 		if _, err := os.Stat(inputFile); err != nil {
 			if os.IsNotExist(err) {
-				return fmt.Errorf("input file not found: %s", inputFile)
+				return &ExitError{
+					Message: fmt.Sprintf("input file not found: %s", inputFile),
+					Code:    2,
+				}
 			}
 			return fmt.Errorf("failed to access input file: %w", err)
 		}
