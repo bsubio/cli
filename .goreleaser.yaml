@@ -54,6 +54,24 @@ nfpms:
     bindir: /usr/bin
     file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
+aurs:
+  - name: bsubio-bin
+    homepage: https://bsub.io
+    description: CLI for easy running heavy duty compute jobs in the cloud
+    maintainers:
+      - "bsub.io <contact@bsub.io>"
+    license: MIT
+    private_key: "{{ .Env.AUR_SSH_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/bsubio-bin.git"
+    package: |-
+      # binary package
+      install -Dm755 "./bsubio" "${pkgdir}/usr/bin/bsubio"
+      # license
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/bsubio/LICENSE"
+    commit_author:
+      name: bsub.io
+      email: contact@bsub.io
+
 changelog:
   disable: false
   use: git
@@ -106,6 +124,15 @@ release:
     ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
     wget https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ProjectName }}_{{ .Version }}_linux_${ARCH}.rpm
     sudo rpm -i {{ .ProjectName }}_{{ .Version }}_linux_${ARCH}.rpm
+    ```
+
+    #### Arch Linux (AUR)
+    ```bash
+    # Using yay
+    yay -S bsubio-bin
+
+    # Or using paru
+    paru -S bsubio-bin
     ```
 
     #### macOS (Homebrew)
