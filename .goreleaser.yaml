@@ -63,7 +63,7 @@ aurs:
     license: MIT
     private_key: "{{ .Env.AUR_SSH_KEY }}"
     git_url: "ssh://aur@aur.archlinux.org/bsubio-bin.git"
-    skip_upload: '{{ not (env "AUR_SSH_KEY") }}'
+    skip_upload: false
     package: |-
       # binary package
       install -Dm755 "./bsubio" "${pkgdir}/usr/bin/bsubio"
@@ -209,7 +209,7 @@ chocolateys:
     release_notes: "https://github.com/bsubio/cli/releases/tag/{{ .Tag }}"
     api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
     source_repo: "https://push.chocolatey.org/"
-    skip_publish: '{{ not (env "CHOCOLATEY_API_KEY") }}'
+    skip_publish: false
 
 winget:
   - name: bsubio
@@ -232,7 +232,7 @@ winget:
       name: bsub.io
       email: contact@bsub.io
     url_template: "https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    skip_upload: '{{ not (env "WINGET_GITHUB_TOKEN") }}'
+    skip_upload: false
     release_notes: "{{ .Changelog }}"
     tags:
       - cli
