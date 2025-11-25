@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -214,6 +216,23 @@ func runSubmit(args []string) error {
 			outputResp, err := client.GetJobOutput(ctx, jobID)
 			if err != nil {
 				return fmt.Errorf("failed to get job output for %s: %w", jobID.String(), err)
+			}
+
+			if outputResp.StatusCode != 200 {
+				body, err := io.ReadAll(outputResp.Body)
+				_ = outputResp.Body.Close()
+				if err != nil {
+					return fmt.Errorf("failed to get job output for %s: HTTP %d", jobID.String(), outputResp.StatusCode)
+				}
+
+				var errorResp struct {
+					Error string `json:"error"`
+				}
+				if err := json.Unmarshal(body, &errorResp); err == nil && errorResp.Error != "" {
+					return fmt.Errorf("failed to get job output for %s: %s", jobID.String(), errorResp.Error)
+				}
+
+				return fmt.Errorf("failed to get job output for %s: HTTP %d: %s", jobID.String(), outputResp.StatusCode, string(body))
 			}
 
 			// Write output to file or stdout
