@@ -68,17 +68,20 @@ func runCancel(args []string) error {
 
 		jobs := *resp.JSON200.Data.Jobs
 		canceledCount := 0
+		failedCount := 0
 
 		for _, job := range jobs {
 			if job.Status != nil && (*job.Status == "pending" || *job.Status == "claimed") {
 				cancelResp, err := client.CancelJobWithResponse(ctx, *job.Id)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Failed to cancel job %s: %v\n", *job.Id, err)
+					failedCount++
 					continue
 				}
 
 				if cancelResp.StatusCode() != 200 {
 					fmt.Fprintf(os.Stderr, "Failed to cancel job %s: HTTP %d\n", *job.Id, cancelResp.StatusCode())
+					failedCount++
 					continue
 				}
 
@@ -87,7 +90,11 @@ func runCancel(args []string) error {
 			}
 		}
 
-		fmt.Fprintf(os.Stderr, "Canceled %d job(s)\n", canceledCount)
+		fmt.Fprintf(os.Stderr, "Canceled %d job(s), failed %d\n", canceledCount, failedCount)
+
+		if failedCount > 0 {
+			return fmt.Errorf("failed to cancel %d job(s)", failedCount)
+		}
 	} else {
 		// Cancel specified jobs
 		canceledCount := 0
@@ -118,7 +125,7 @@ func runCancel(args []string) error {
 			canceledCount++
 		}
 
-		if len(jobIDs) > 1 {
+		if canceledCount+failedCount > 1 {
 			fmt.Fprintf(os.Stderr, "Canceled %d job(s), failed %d\n", canceledCount, failedCount)
 		}
 
