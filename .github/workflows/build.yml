@@ -66,6 +66,14 @@ jobs:
       - name: Run make check (fmt, vet, lint, test)
         run: make check
 
+      - name: Set up QEMU
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: docker/setup-buildx-action@v3
+
       - name: Get latest tag
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: get_tag
