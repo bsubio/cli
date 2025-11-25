@@ -150,6 +150,17 @@ release:
     choco install bsubio
     ```
 
+    #### Docker
+    ```bash
+    docker pull ghcr.io/bsubio/cli:latest
+    docker run ghcr.io/bsubio/cli:latest version
+
+    # With API key and file mounting
+    docker run -e BSUBIO_API_KEY=$BSUBIO_API_KEY \
+      -v $(pwd):/data \
+      ghcr.io/bsubio/cli:latest submit pdf/extract /data/input.pdf
+    ```
+
     #### Quick Install (Recommended)
     ```bash
     curl -fsSL https://www.bsub.io/install.sh | sh
@@ -228,6 +239,26 @@ winget:
       - job-scheduler
       - cloud
       - devops
+
+dockers:
+  - image_templates:
+      - "ghcr.io/bsubio/cli:{{ .Tag }}"
+      - "ghcr.io/bsubio/cli:v{{ .Major }}"
+      - "ghcr.io/bsubio/cli:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/bsubio/cli:latest"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title=bsubio"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/bsubio/cli"
+      - "--label=org.opencontainers.image.description=CLI for easy running heavy duty compute jobs in the cloud"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/amd64"
+    extra_files:
+      - LICENSE
 
 homebrew_casks:
   - name: bsubio
