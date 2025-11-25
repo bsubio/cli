@@ -17,12 +17,12 @@ func runCancel(args []string) error {
 
 	// Custom usage function
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: bsubio cancel [options] [jobid]\n\n")
-		fmt.Fprintf(fs.Output(), "Cancel a job or all jobs\n\n")
+		fmt.Fprintf(fs.Output(), "Usage: bsubio cancel [options] [jobid...]\n\n")
+		fmt.Fprintf(fs.Output(), "Cancel one or more jobs, or all jobs\n\n")
 		fmt.Fprintf(fs.Output(), "Options:\n")
 		fs.PrintDefaults()
 		fmt.Fprintf(fs.Output(), "\nArguments:\n")
-		fmt.Fprintf(fs.Output(), "  jobid    Job ID to cancel (not required with -a)\n")
+		fmt.Fprintf(fs.Output(), "  jobid    Job ID(s) to cancel (can specify multiple, not required with -a)\n")
 	}
 
 	// Parse flags
@@ -32,15 +32,15 @@ func runCancel(args []string) error {
 
 	// Get remaining arguments
 	remainingArgs := fs.Args()
-	var jobID string
+	var jobIDs []string
 
-	// If not canceling all, require job ID
+	// If not canceling all, require at least one job ID
 	if !*cancelAll {
-		if len(remainingArgs) != 1 {
+		if len(remainingArgs) < 1 {
 			fs.Usage()
-			return fmt.Errorf("expected 1 argument when not using -a flag")
+			return fmt.Errorf("expected at least 1 job ID when not using -a flag")
 		}
-		jobID = remainingArgs[0]
+		jobIDs = remainingArgs
 	}
 
 	// Create client
@@ -89,21 +89,42 @@ func runCancel(args []string) error {
 
 		fmt.Fprintf(os.Stderr, "Canceled %d job(s)\n", canceledCount)
 	} else {
-		// Cancel single job
-		jobUUID, err := uuid.Parse(jobID)
-		if err != nil {
-			return fmt.Errorf("invalid job ID: %w", err)
-		}
-		resp, err := client.CancelJobWithResponse(ctx, jobUUID)
-		if err != nil {
-			return fmt.Errorf("failed to cancel job: %w", err)
+		// Cancel specified jobs
+		canceledCount := 0
+		failedCount := 0
+
+		for _, jobID := range jobIDs {
+			jobUUID, err := uuid.Parse(jobID)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Invalid job ID %s: %v\n", jobID, err)
+				failedCount++
+				continue
+			}
+
+			resp, err := client.CancelJobWithResponse(ctx, jobUUID)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to cancel job %s: %v\n", jobID, err)
+				failedCount++
+				continue
+			}
+
+			if resp.StatusCode() != 200 {
+				fmt.Fprintf(os.Stderr, "Failed to cancel job %s: HTTP %d\n", jobID, resp.StatusCode())
+				failedCount++
+				continue
+			}
+
+			fmt.Fprintf(os.Stderr, "Canceled job: %s\n", jobID)
+			canceledCount++
 		}
 
-		if resp.StatusCode() != 200 {
-			return fmt.Errorf("failed to cancel job: HTTP %d", resp.StatusCode())
+		if len(jobIDs) > 1 {
+			fmt.Fprintf(os.Stderr, "Canceled %d job(s), failed %d\n", canceledCount, failedCount)
 		}
 
-		fmt.Fprintf(os.Stderr, "Job canceled: %s\n", jobID)
+		if failedCount > 0 {
+			return fmt.Errorf("failed to cancel %d job(s)", failedCount)
+		}
 	}
 
 	return nil
