@@ -44,7 +44,7 @@ nfpms:
   - id: default
     package_name: bsubio
     vendor: bsubio
-    homepage: https://bsub.io
+    homepage: https://www.bsub.io
     maintainer: bsub.io <contact@bsub.io>
     description: CLI for easy running heavy duty compute jobs in the cloud
     license: MIT
@@ -56,7 +56,7 @@ nfpms:
 
 aurs:
   - name: bsubio-bin
-    homepage: https://bsub.io
+    homepage: https://www.bsub.io
     description: CLI for easy running heavy duty compute jobs in the cloud
     maintainers:
       - "bsub.io <contact@bsub.io>"
@@ -147,7 +147,7 @@ release:
 
     #### Quick Install (Recommended)
     ```bash
-    curl -fsSL https://install.bsub.io/ | sh
+    curl -fsSL https://www.bsub.io/install.sh | sh
     ```
 
     #### Manual Installation
@@ -206,7 +206,7 @@ homebrew_casks:
     commit_author:
       name: bsub.io
       email: contact@bsub.io
-    homepage: https://bsub.io
+    homepage: https://www.bsub.io
     description: CLI for easy running heavy duty compute jobs in the cloud
     binaries:
       - bsubio
