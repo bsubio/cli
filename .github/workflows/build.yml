@@ -26,6 +26,7 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      options: --user root -v /var/run/docker.sock:/var/run/docker.sock
     outputs:
       should_release: ${{ steps.next_version.outputs.should_release }}
       new_version: ${{ steps.next_version.outputs.new_version }}
