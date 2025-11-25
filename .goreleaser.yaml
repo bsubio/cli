@@ -63,6 +63,7 @@ aurs:
     license: MIT
     private_key: "{{ .Env.AUR_SSH_KEY }}"
     git_url: "ssh://aur@aur.archlinux.org/bsubio-bin.git"
+    skip_upload: false
     package: |-
       # binary package
       install -Dm755 "./bsubio" "${pkgdir}/usr/bin/bsubio"
@@ -231,7 +232,7 @@ winget:
       name: bsub.io
       email: contact@bsub.io
     url_template: "https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    skip_upload: auto
+    skip_upload: false
     release_notes: "{{ .Changelog }}"
     tags:
       - cli
