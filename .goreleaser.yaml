@@ -242,11 +242,11 @@ winget:
 
 dockers:
   - image_templates:
-      - "ghcr.io/bsubio/cli:{{ .Tag }}"
-      - "ghcr.io/bsubio/cli:v{{ .Major }}"
-      - "ghcr.io/bsubio/cli:v{{ .Major }}.{{ .Minor }}"
-      - "ghcr.io/bsubio/cli:latest"
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-amd64"
     dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: amd64
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -259,6 +259,46 @@ dockers:
       - "--platform=linux/amd64"
     extra_files:
       - LICENSE
+
+  - image_templates:
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title=bsubio"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/bsubio/cli"
+      - "--label=org.opencontainers.image.description=CLI for easy running heavy duty compute jobs in the cloud"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/arm64"
+    extra_files:
+      - LICENSE
+
+docker_manifests:
+  - name_template: "ghcr.io/bsubio/cli:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-amd64"
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-arm64"
+
+  - name_template: "ghcr.io/bsubio/cli:v{{ .Major }}"
+    image_templates:
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-amd64"
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-arm64"
+
+  - name_template: "ghcr.io/bsubio/cli:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-amd64"
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-arm64"
+
+  - name_template: "ghcr.io/bsubio/cli:latest"
+    image_templates:
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-amd64"
+      - "ghcr.io/bsubio/cli:{{ .Tag }}-arm64"
 
 homebrew_casks:
   - name: bsubio
