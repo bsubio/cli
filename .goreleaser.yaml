@@ -245,6 +245,7 @@ dockers:
       - "ghcr.io/bsubio/cli:{{ .Tag }}-amd64"
     dockerfile: Dockerfile
     use: buildx
+    goos: linux
     goarch: amd64
     build_flag_templates:
       - "--pull"
@@ -263,6 +264,7 @@ dockers:
       - "ghcr.io/bsubio/cli:{{ .Tag }}-arm64"
     dockerfile: Dockerfile
     use: buildx
+    goos: linux
     goarch: arm64
     build_flag_templates:
       - "--pull"
