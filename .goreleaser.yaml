@@ -204,8 +204,8 @@ winget:
     publisher: bsubio
     short_description: CLI for easy running heavy duty compute jobs in the cloud
     license: MIT
-    homepage: https://bsub.io
-    publisher_url: https://bsub.io
+    homepage: https://www.bsub.io
+    publisher_url: https://www.bsub.io
     publisher_support_url: https://github.com/bsubio/cli/issues
     package_identifier: bsubio.bsubio
     repository:
