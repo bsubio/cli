@@ -232,7 +232,9 @@ winget:
       name: bsub.io
       email: contact@bsub.io
     url_template: "https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-    skip_upload: false
+    # Temporarily disabled - winget requires manual first submission to microsoft/winget-pkgs
+    # After first manual PR is merged, change this to: skip_upload: '{{ not (env "WINGET_GITHUB_TOKEN") }}'
+    skip_upload: true
     release_notes: "{{ .Changelog }}"
     tags:
       - cli
