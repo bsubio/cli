@@ -44,7 +44,7 @@ nfpms:
   - id: default
     package_name: bsubio
     vendor: bsubio
-    homepage: https://bsub.io
+    homepage: https://www.bsub.io
     maintainer: bsub.io <contact@bsub.io>
     description: CLI for easy running heavy duty compute jobs in the cloud
     license: MIT
@@ -53,6 +53,24 @@ nfpms:
       - rpm
     bindir: /usr/bin
     file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+aurs:
+  - name: bsubio-bin
+    homepage: https://www.bsub.io
+    description: CLI for easy running heavy duty compute jobs in the cloud
+    maintainers:
+      - "bsub.io <contact@bsub.io>"
+    license: MIT
+    private_key: "{{ .Env.AUR_SSH_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/bsubio-bin.git"
+    package: |-
+      # binary package
+      install -Dm755 "./bsubio" "${pkgdir}/usr/bin/bsubio"
+      # license
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/bsubio/LICENSE"
+    commit_author:
+      name: bsub.io
+      email: contact@bsub.io
 
 changelog:
   disable: false
@@ -108,6 +126,15 @@ release:
     sudo rpm -i {{ .ProjectName }}_{{ .Version }}_linux_${ARCH}.rpm
     ```
 
+    #### Arch Linux (AUR)
+    ```bash
+    # Using yay
+    yay -S bsubio-bin
+
+    # Or using paru
+    paru -S bsubio-bin
+    ```
+
     #### macOS (Homebrew)
     ```bash
     brew install bsubio/tap/bsubio
@@ -120,7 +147,7 @@ release:
 
     #### Quick Install (Recommended)
     ```bash
-    curl -fsSL https://install.bsub.io/ | sh
+    curl -fsSL https://www.bsub.io/install.sh | sh
     ```
 
     #### Manual Installation
@@ -179,7 +206,7 @@ homebrew_casks:
     commit_author:
       name: bsub.io
       email: contact@bsub.io
-    homepage: https://bsub.io
+    homepage: https://www.bsub.io
     description: CLI for easy running heavy duty compute jobs in the cloud
     binaries:
       - bsubio
