@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-# Install system dependencies
+# Install system dependencies including Docker CLI
 RUN apt-get update && apt-get install -y \
     gnupg \
     ca-certificates \
@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     build-essential \
+    docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Go 1.25.4
