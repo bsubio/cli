@@ -6,7 +6,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the binary from the build
-COPY bsubio /usr/local/bin/bsubio
+COPY bin/bsubio /usr/local/bin/bsubio
 
 # Set bsubio as the entrypoint
 ENTRYPOINT ["/usr/local/bin/bsubio"]
