@@ -140,6 +140,11 @@ release:
     brew install bsubio/tap/bsubio
     ```
 
+    #### Windows (winget)
+    ```powershell
+    winget install bsubio.bsubio
+    ```
+
     #### Windows (Chocolatey)
     ```powershell
     choco install bsubio
@@ -193,6 +198,36 @@ chocolateys:
     api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
     source_repo: "https://push.chocolatey.org/"
     skip_publish: false
+
+winget:
+  - name: bsubio
+    publisher: bsubio
+    short_description: CLI for easy running heavy duty compute jobs in the cloud
+    license: MIT
+    homepage: https://www.bsub.io
+    publisher_url: https://www.bsub.io
+    publisher_support_url: https://github.com/bsubio/cli/issues
+    package_identifier: bsubio.bsubio
+    repository:
+      owner: microsoft
+      name: winget-pkgs
+      branch: master
+      token: "{{ .Env.WINGET_GITHUB_TOKEN }}"
+      pull_request:
+        enabled: true
+        draft: false
+    commit_author:
+      name: bsub.io
+      email: contact@bsub.io
+    url_template: "https://github.com/bsubio/cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    skip_upload: auto
+    release_notes: "{{ .Changelog }}"
+    tags:
+      - cli
+      - batch-jobs
+      - job-scheduler
+      - cloud
+      - devops
 
 homebrew_casks:
   - name: bsubio
